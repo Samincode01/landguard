@@ -8,6 +8,7 @@ import {
   compareLandDocument,
 } from "@/lib/verification";
 import { toBengaliNumerals } from "@/lib/formatters";
+import VerificationReport from "./VerificationReport";
 
 interface VerificationModalProps {
   isOpen: boolean;
@@ -25,8 +26,8 @@ export default function VerificationModal({
   const initialParcel =
     parcels.find((p) => p.id === initialParcelId) || parcels[0];
 
-  // Current view step: "form" or "results"
-  const [step, setStep] = useState<"form" | "results">("form");
+  // Current view step: "form", "results", or "report"
+  const [step, setStep] = useState<"form" | "results" | "report">("form");
 
   // Selected reference parcel ID
   const [selectedParcelId, setSelectedParcelId] = useState<string>(
@@ -183,51 +184,59 @@ export default function VerificationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+    <div className="report-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-3xl my-6 rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all overflow-hidden flex flex-col max-h-[92vh]"
+        className={`report-modal-container relative w-full ${
+          step === "report" ? "max-w-4xl" : "max-w-3xl"
+        } my-6 rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all overflow-hidden flex flex-col max-h-[92vh]`}
         role="dialog"
         aria-modal="true"
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-4 bg-slate-50/80 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-800 text-white shadow-xs">
-              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  {step === "form" ? "দলিল ও খতিয়ান প্রাক-যাচাই" : "যাচাইকরণ ফলাফল ও রেকর্ড তুলনা"}
-                </h3>
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-2xs font-semibold text-emerald-800 border border-emerald-200">
-                  ডেমো প্রোটোটাইপ
-                </span>
+        {/* Modal Header (Hidden on full report view to allow report's own action bar) */}
+        {step !== "report" && (
+          <div className="no-print flex items-center justify-between border-b border-slate-200/80 px-5 py-4 bg-slate-50/80 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-800 text-white shadow-xs">
+                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {step === "form"
-                  ? "নির্বাচিত রেফারেন্স রেকর্ডের বিপরীতে দলিলের তথ্য যাচাই করুন"
-                  : "দাখিলকৃত দলিলের তথ্যের সাথে রেফারেন্স রেকর্ডের তুলনামূলক বিশ্লেষণ"}
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                    {step === "form" ? "দলিল ও খতিয়ান প্রাক-যাচাই" : "যাচাইকরণ ফলাফল ও রেকর্ড তুলনা"}
+                  </h3>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-2xs font-semibold text-emerald-800 border border-emerald-200">
+                    ডেমো প্রোটোটাইপ
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {step === "form"
+                    ? "নির্বাচিত রেফারেন্স রেকর্ডের বিপরীতে দলিলের তথ্য যাচাই করুন"
+                    : "দাখিলকৃত দলিলের তথ্যের সাথে রেফারেন্স রেকর্ডের তুলনামূলক বিশ্লেষণ"}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <button
-            onClick={onClose}
-            type="button"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition focus:outline-none"
-            aria-label="বন্ধ করুন"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+            <button
+              onClick={onClose}
+              type="button"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition focus:outline-none"
+              aria-label="বন্ধ করুন"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+        <div
+          className={`overflow-y-auto flex-1 ${
+            step === "report" ? "p-3 sm:p-5 bg-slate-100/60" : "p-5 sm:p-6 space-y-5"
+          }`}
+        >
           {step === "form" ? (
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Reference Parcel Selector Card */}
@@ -507,7 +516,7 @@ export default function VerificationModal({
                 </button>
               </div>
             </form>
-          ) : result ? (
+          ) : step === "results" && result ? (
             /* Results View */
             <div className="space-y-5">
               {/* Overall Category Status Banner */}
@@ -651,15 +660,36 @@ export default function VerificationModal({
                   <span>তথ্য সংশোধন করে পুনরায় পরীক্ষা</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-xl bg-emerald-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-900 transition"
-                >
-                  সম্পন্ন করুন
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep("report")}
+                    id="btn-view-full-report"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-900 transition active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-1"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    <span>পূর্ণাঙ্গ রিপোর্ট ও PDF সংরক্ষণ</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+                  >
+                    সম্পন্ন করুন
+                  </button>
+                </div>
               </div>
             </div>
+          ) : step === "report" && result ? (
+            /* Printable Report View */
+            <VerificationReport
+              result={result}
+              onBack={() => setStep("results")}
+              onClose={onClose}
+            />
           ) : null}
         </div>
       </div>

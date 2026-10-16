@@ -79,3 +79,104 @@ td {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ==========================================================================
+   PRINT STYLES FOR LANDGUARD BD VERIFICATION REPORT & A4 EXPORT
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 14mm;
+}
+
+@media print {
+  /* Ensure clean background and pure black typography */
+  html, body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Hide app chrome, dashboard sections, and modal controls */
+  header,
+  footer,
+  nav,
+  main,
+  .no-print,
+  #map-section,
+  #records-section,
+  #about-section,
+  #disclaimer-section,
+  #summary-cards,
+  #verification-cta {
+    display: none !important;
+  }
+
+  /* Reset modal containers when printing report so no clipping or artificial scrollbars occur */
+  .report-modal-overlay {
+    position: static !important;
+    display: block !important;
+    inset: auto !important;
+    overflow: visible !important;
+    background: transparent !important;
+    z-index: auto !important;
+    padding: 0 !important;
+  }
+
+  .report-modal-container {
+    position: static !important;
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Ensure modal body scrolling container does not constrain print height */
+  .report-modal-container > div {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .report-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Page break avoidance for cards, tables, checklist items */
+  .avoid-page-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Retain badge colors, background tints, and borders */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove link URLs on print */
+  a[href]:after {
+    content: none !important;
+  }
+}
+
