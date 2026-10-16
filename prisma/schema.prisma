@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Core synthetic land parcel record representing geographic and cadastral details in Bangladesh.
+model LandParcel {
+  id           String   @id @default(cuid())
+  district     String   // e.g. "Dhaka", "Gazipur"
+  upazila      String   // e.g. "Savar", "Kaliakair"
+  mouza        String   // Cadastral revenue village / mouza name
+  jlNumber     String   // Jurisdiction List (JL) number
+  khatianNumber String  // Khatian / ledger number in the specified survey
+  dagNumber    String   // Dag / plot number
+  khatianType  String   // Survey type: "CS", "SA", "RS", "BS", "City Survey"
+  recordedArea Float    // Numerical recorded land area
+  areaUnit     String   @default("decimal") // "decimal", "katha", "bigha", "acre", "sqft"
+
+  // Illustrative approximate map coordinates for demo prototype visualization
+  latitude     Float?
+  longitude    Float?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  ownershipRecords     OwnershipRecord[]
+  verificationRequests VerificationRequest[]
+
+  // Localized indexes (Dag/Khatian are scoped to Mouza and geographic boundaries, never globally unique)
+  @@index([district, upazila, mouza])
+  @@index([mouza, dagNumber])
+  @@index([mouza, khatianNumber])
+}
+
+/// Synthetic historical or active ownership record tied to a specific parcel.
+model OwnershipRecord {
+  id           String      @id @default(cuid())
+  ownerName    String      // Synthetic demo owner name
+  landParcelId String
+  landParcel   LandParcel  @relation(fields: [landParcelId], references: [id], onDelete: Cascade)
+
+  deedNumber   String?     // Synthetic deed / dalil reference number
+  recordedArea Float?      // Area portion owned under this record
+  areaUnit     String?     @default("decimal")
+  status       String      @default("ACTIVE") // "ACTIVE", "MUTATED", "HISTORICAL", "DISPUTED"
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([landParcelId])
+  @@index([ownerName])
+}
+
+/// Preliminary document verification analysis request.
+/// Stores synthetic document metadata and extracted fields without binary uploads.
+model VerificationRequest {
+  id                 String       @id @default(cuid())
+  documentFilename   String?      // Client-provided document filename only (no binary stored)
+  extractedData      String?      // SQLite-safe JSON string of parsed cadastral/deed attributes
+  
+  targetLandParcelId String?      // Optional match to a synthetic demo parcel
+  targetLandParcel   LandParcel?  @relation(fields: [targetLandParcelId], references: [id], onDelete: SetNull)
+
+  status             String       @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED"
+  riskLevel          String       @default("LOW")     // "LOW", "MEDIUM", "HIGH"
+  riskScore          Int?         // 0 to 100 risk score representation
+  notes              String?      // Preliminary advisory notes; explicitly not proof of legal title
+
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  // Relationships
+  riskFlags          RiskFlag[]
+
+  @@index([status])
+  @@index([riskLevel])
+  @@index([targetLandParcelId])
+}
+
+/// Granular discrepancy or risk anomaly identified during preliminary document verification.
+model RiskFlag {
+  id                    String              @id @default(cuid())
+  verificationRequestId String
+  verificationRequest   VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
+
+  flagCode              String              // e.g. "AREA_MISMATCH", "UNVERIFIED_MUTATION", "CHAIN_OF_TITLE_GAP"
+  severity              String              // "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  title                 String?             // Short summary headline
+  description           String              // Plain-language advisory explaining the anomaly
+
+  createdAt             DateTime            @default(now())
+
+  @@index([verificationRequestId])
+  @@index([severity])
+}
