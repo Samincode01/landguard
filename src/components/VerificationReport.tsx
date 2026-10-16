@@ -153,7 +153,7 @@ export default function VerificationReport({
       {/* ── PRINTABLE SHEET CONTAINER ── */}
       <div
         id="landguard-printable-report"
-        className="report-sheet bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10 text-slate-900 space-y-6"
+        className="verification-report-print-root report-sheet bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10 text-slate-900 space-y-6"
       >
         {/* 1. REPORT HEADER */}
         <div className="border-b-2 border-emerald-800 pb-5 space-y-3">

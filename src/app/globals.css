@@ -90,15 +90,24 @@ td {
 }
 
 @media print {
-  /* Ensure clean background and pure black typography */
-  html, body {
+  /* 1. Base reset for clean page and readable typography */
+  html,
+  body {
+    background: #ffffff !important;
     background-color: #ffffff !important;
     color: #0f172a !important;
     font-size: 11pt !important;
     line-height: 1.45 !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
 
-  /* Hide app chrome, dashboard sections, and modal controls */
+  /* 2. Hide entire dashboard website, navigation, footer, and screen controls */
+  #dashboard-view-content,
+  .dashboard-screen-content,
   header,
   footer,
   nav,
@@ -113,17 +122,25 @@ td {
     display: none !important;
   }
 
-  /* Reset modal containers when printing report so no clipping or artificial scrollbars occur */
+  /* 3. Neutralize modal overlay: remove backdrop blur, dark shade, fixed positioning */
   .report-modal-overlay {
     position: static !important;
     display: block !important;
     inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
     overflow: visible !important;
     background: transparent !important;
     z-index: auto !important;
     padding: 0 !important;
+    margin: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
+  /* 4. Neutralize modal container: remove fixed constraints, borders, and shadows */
   .report-modal-container {
     position: static !important;
     display: block !important;
@@ -139,25 +156,40 @@ td {
     background: transparent !important;
   }
 
-  /* Ensure modal body scrolling container does not constrain print height */
-  .report-modal-container > div {
+  /* 5. Ensure modal body scrolling container does not constrain print height or clip pages */
+  .report-modal-container > div,
+  .report-root-container {
+    display: block !important;
     overflow: visible !important;
     max-height: none !important;
     height: auto !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-
-  .report-sheet {
-    border: none !important;
-    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
-  /* Page break avoidance for cards, tables, checklist items */
+  /* 6. Isolated verification report print root: takes full page and remains fully visible */
+  .verification-report-print-root {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  .verification-report-print-root * {
+    visibility: visible !important;
+  }
+
+  /* 7. Page break avoidance for cards, tables, and sections */
   .avoid-page-break {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -168,13 +200,13 @@ td {
     page-break-inside: avoid !important;
   }
 
-  /* Retain badge colors, background tints, and borders */
+  /* 8. Retain badge colors, background tints, and borders */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Remove link URLs on print */
+  /* 9. Suppress browser URL annotations on printed links */
   a[href]:after {
     content: none !important;
   }

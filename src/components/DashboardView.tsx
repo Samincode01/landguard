@@ -45,43 +45,46 @@ export default function DashboardView({ parcels, summary }: DashboardViewProps) 
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Navigation Header */}
-      <Header onOpenVerificationModal={() => handleOpenVerification()} />
+      {/* Dashboard Screen Content (Isolated and hidden in print mode) */}
+      <div id="dashboard-view-content" className="no-print dashboard-screen-content flex flex-col flex-1 w-full">
+        {/* Navigation Header */}
+        <Header onOpenVerificationModal={() => handleOpenVerification()} />
 
-      {/* Main Content Area */}
-      <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        {/* Compact Civic Tech Disclaimer Banner */}
-        <DisclaimerBanner />
+        {/* Main Content Area */}
+        <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+          {/* Compact Civic Tech Disclaimer Banner */}
+          <DisclaimerBanner />
 
-        {/* Primary Hero & Verification Action */}
-        <VerificationCTA onOpenVerificationModal={() => handleOpenVerification()} />
+          {/* Primary Hero & Verification Action */}
+          <VerificationCTA onOpenVerificationModal={() => handleOpenVerification()} />
 
-        {/* Compact Summary of Demo Records & Risk Indicators */}
-        <SummaryCards stats={summary} />
+          {/* Compact Summary of Demo Records & Risk Indicators */}
+          <SummaryCards stats={summary} />
 
-        {/* Interactive Synthetic Parcel Map & Geographic Visualizer */}
-        <ParcelMap
-          parcels={parcels}
-          selectedParcelId={highlightedParcelId}
-          onSelectParcel={(parcel) => setHighlightedParcelId(parcel.id)}
-          onOpenVerification={(parcelId) => handleOpenVerification(parcelId)}
-          onScrollToTable={handleScrollToTable}
-        />
+          {/* Interactive Synthetic Parcel Map & Geographic Visualizer */}
+          <ParcelMap
+            parcels={parcels}
+            selectedParcelId={highlightedParcelId}
+            onSelectParcel={(parcel) => setHighlightedParcelId(parcel.id)}
+            onOpenVerification={(parcelId) => handleOpenVerification(parcelId)}
+            onScrollToTable={handleScrollToTable}
+          />
 
-        {/* Cadastral Records & Risk Table */}
-        <ParcelTable
-          parcels={parcels}
-          selectedParcelId={highlightedParcelId}
-          onSelectParcel={(parcel) => handleOpenVerification(parcel.id)}
-          onViewOnMap={handleViewOnMap}
-        />
+          {/* Cadastral Records & Risk Table */}
+          <ParcelTable
+            parcels={parcels}
+            selectedParcelId={highlightedParcelId}
+            onSelectParcel={(parcel) => handleOpenVerification(parcel.id)}
+            onViewOnMap={handleViewOnMap}
+          />
 
-        {/* Educational Land Risk Pitfalls & Synthetic Data Notice */}
-        <AboutSection />
-      </main>
+          {/* Educational Land Risk Pitfalls & Synthetic Data Notice */}
+          <AboutSection />
+        </main>
 
-      {/* Footer */}
-      <Footer />
+        {/* Footer */}
+        <Footer />
+      </div>
 
       {/* Verification Functional Modal */}
       {isVerificationModalOpen && (
