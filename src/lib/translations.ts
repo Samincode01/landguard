@@ -355,6 +355,38 @@ export interface TranslationDictionary {
     modalClose: string;
     printReport: string;
   };
+
+  // Responsive Sidebar & Navigation
+  sidebar: {
+    overview: string;
+    verifyDocument: string;
+    myHistory: string;
+    exploreRecords: string;
+    account: string;
+    collapse: string;
+    expand: string;
+    menu: string;
+    close: string;
+    workspace: string;
+    logout: string;
+  };
+
+  // Explore Land Records
+  explore: {
+    title: string;
+    subtitle: string;
+    disclaimer: string;
+    recordsCount: string;
+    showingRecords: string;
+    loadMore: string;
+    allLoaded: string;
+    loading: string;
+    errorTitle: string;
+    errorSubtitle: string;
+    retry: string;
+    emptyTitle: string;
+    emptySubtitle: string;
+  };
 }
 
 export const translations: Record<Language, TranslationDictionary> = {
@@ -682,6 +714,34 @@ export const translations: Record<Language, TranslationDictionary> = {
       modalClose: "বন্ধ করুন",
       printReport: "রিপোর্ট প্রিন্ট / PDF",
     },
+    sidebar: {
+      overview: "সারসংক্ষেপ",
+      verifyDocument: "দলিল যাচাই করুন",
+      myHistory: "আমার যাচাইকরণ ইতিহাস",
+      exploreRecords: "ভূমি রেকর্ড অনুসন্ধান",
+      account: "আমার অ্যাকাউন্ট",
+      collapse: "সাইডবার ছোট করুন",
+      expand: "সাইডবার প্রসারিত করুন",
+      menu: "নেভিগেশন মেনু",
+      close: "মেনু বন্ধ করুন",
+      workspace: "ব্যক্তিগত যাচাই ওয়ার্কস্পেস",
+      logout: "লগআউট",
+    },
+    explore: {
+      title: "ভূমি রেকর্ড অনুসন্ধান",
+      subtitle: "ক্যাডাস্ট্রাল মানচিত্র ও কৃত্রিম নমুনা ভূমি রেকর্ডের ঝুঁকি বিশ্লেষণ",
+      disclaimer: "ল্যান্ডগার্ড বিডি-র ঝুঁকি বিশ্লেষণ অন্বেষণের জন্য কৃত্রিম উদাহরণমূলক রেকর্ড। এগুলো সরকারের দাপ্তরিক ভূমি রেকর্ড নয়।",
+      recordsCount: "টি নমুনা রেকর্ড পাওয়া গেছে",
+      showingRecords: "প্রদর্শিত হচ্ছে",
+      loadMore: "আরও রেকর্ড দেখুন",
+      allLoaded: "সবগুলো রেকর্ড প্রদর্শিত হয়েছে",
+      loading: "ডাটাবেজ থেকে ভূমি রেকর্ড লোড হচ্ছে...",
+      errorTitle: "রেকর্ড লোড করা যায়নি",
+      errorSubtitle: "ডাটাবেজের সাথে যোগাযোগ করতে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।",
+      retry: "পুনরায় চেষ্টা করুন",
+      emptyTitle: "কোনো রেকর্ড পাওয়া যায়নি",
+      emptySubtitle: "আপনার অনুসন্ধানের সাথে মিল রেখে কোনো ভূমি রেকর্ড পাওয়া যায়নি।",
+    },
   },
 
   en: {
@@ -1007,6 +1067,34 @@ export const translations: Record<Language, TranslationDictionary> = {
       modalTitle: "Saved Verification Result & Audit Details",
       modalClose: "Close",
       printReport: "Print Report / PDF",
+    },
+    sidebar: {
+      overview: "Overview",
+      verifyDocument: "Verify Land Document",
+      myHistory: "My Verification History",
+      exploreRecords: "Explore Land Records",
+      account: "My Account",
+      collapse: "Collapse sidebar",
+      expand: "Expand sidebar",
+      menu: "Navigation Menu",
+      close: "Close menu",
+      workspace: "Personal Verification Workspace",
+      logout: "Logout",
+    },
+    explore: {
+      title: "Explore Land Records",
+      subtitle: "Cadastral map visualizer & risk analysis across synthetic land parcels",
+      disclaimer: "Illustrative records for exploring LandGuard BD's risk analysis. These are not official land records.",
+      recordsCount: "sample records available",
+      showingRecords: "Showing",
+      loadMore: "Load more records",
+      allLoaded: "All records loaded",
+      loading: "Loading land parcels from database...",
+      errorTitle: "Unable to load land records",
+      errorSubtitle: "There was a problem communicating with the database. Please try again.",
+      retry: "Retry",
+      emptyTitle: "No records found",
+      emptySubtitle: "No land records matched your search or filter criteria.",
     },
   },
 };

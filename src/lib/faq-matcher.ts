@@ -86,7 +86,7 @@ export function scoreFaqItem(normalizedQuery: string, item: LandFaqItem): number
   return score;
 }
 
-const FAQ_ENGLISH_ANSWERS: Record<
+export const FAQ_ENGLISH_ANSWERS: Record<
   string,
   {
     answer: string;
@@ -241,6 +241,27 @@ export function findBestFaqMatch(
           : "অনুগ্রহ করে ভূমি সংক্রান্ত আপনার প্রশ্নটি লিখুন (যেমন: 'খতিয়ান কী?', 'নামজারি কেন জরুরি?' বা 'বায়া দলিল কীভাবে পরীক্ষা করব?')।",
       source: "FALLBACK",
       suggestedQuestions: fallbackQuestions,
+    };
+  }
+
+  // Handle identity or capability questions if routed to FAQ matcher
+  const isIdentityQuery =
+    /^(who\s*(are|r)\s*(you|u)|what\s*is\s*your\s*name|what\s*can\s*you\s*do|are\s*you\s*(a\s*)?(real\s*person|human|ai|bot|robot))\b/i.test(norm) ||
+    /^(তুমি\s*কে|আপনি\s*কে|তোমার\s*নাম\s*কী|আপনার\s*নাম\s*কি|তুমি\s*কি\s*মানুষ|আপনি\s*কি\s*মানুষ|তুমি\s*কি\s*করতে\s*পারো|আপনি\s*কি\s*করতে\s*পারেন|তোমার\s*কাজ\s*কি|আপনার\s*কাজ\s*কি)\b/u.test(norm);
+
+  if (isIdentityQuery) {
+    return {
+      matched: true,
+      score: 25,
+      formattedResponseBn:
+        language === "en"
+          ? "I am Bhumi Sathi (ভূমিসাথী), the AI land information assistant built into LandGuard BD. I help you understand khatian (porcha), dag numbers, mouza, survey systems (CS, SA, RS, BS), mutation (namjari), chain of title (baya dalil), and red flags for land document fraud."
+          : "আমি ভূমিসাথী (Bhumi Sathi), ল্যান্ডগার্ড বিডি (LandGuard BD)-এর AI ভূমি-তথ্য সহায়ক। আমি বাংলাদেশের নাগরিকদের জমি-জমার বিভিন্ন পরিভাষা, খতিয়ান (পর্চা), দাগ নম্বর, মৌজা, জরিপ (CS, SA, RS, BS), নামজারি, বায়া দলিল এবং জমি জালিয়াতির ঝুঁকি বুঝতে সাহায্য করি।",
+      source: "FAQ_MATCH",
+      suggestedQuestions:
+        language === "en"
+          ? ["What is a khatian?", "How do I find a dag number?", "Why is mutation (namjari) necessary?"]
+          : ["খতিয়ান বা পর্চা কী?", "দাগ নম্বর কীভাবে খুঁজে পাব?", "নামজারি কেন জরুরি?"],
     };
   }
 

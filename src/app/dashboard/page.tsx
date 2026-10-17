@@ -3,16 +3,41 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import DashboardView from "@/components/DashboardView";
-import { SYNTHETIC_DEMO_PARCELS, DEMO_SUMMARY_STATS } from "@/data/demo-data";
+import PersonalDashboardView, {
+  PersonalVerificationItem,
+} from "@/components/PersonalDashboardView";
 
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "যাচাই ড্যাশবোর্ড — ল্যান্ডগার্ড বিডি (LandGuard BD)",
+  title: "ব্যক্তিগত যাচাই ওয়ার্কস্পেস — ল্যান্ডগার্ড বিডি (LandGuard BD)",
   description:
-    "কৃত্রিম ডেমো জমির ক্যাডাস্ট্রাল রেকর্ড, মানচিত্র এবং প্রাক-যাচাই ড্যাশবোর্ড।",
+    "আপনার অ্যাকাউন্টে সংরক্ষিত ব্যক্তিগত ভূমি প্রাক-যাচাই ওয়ার্কস্পেস ও সাম্প্রতিক দলিলের ফলাফল।",
 };
+
+interface StoredHistoryPayload {
+  submitted?: {
+    parcelId?: string;
+    ownerName?: string;
+    district?: string;
+    upazila?: string;
+    mouza?: string;
+    khatianNumber?: string;
+    khatianType?: string;
+    dagNumber?: string;
+    recordedArea?: string;
+    areaUnit?: string;
+  };
+  verification?: {
+    category?: string;
+    categoryLabelBn?: string;
+    summaryBn?: string;
+    matchCount?: number;
+    mismatchCount?: number;
+    missingCount?: number;
+  };
+  extractedOcr?: Record<string, unknown>;
+}
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -42,10 +67,68 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // Fetch only the signed-in user's completed verification history (Strict user isolation)
+  const rawRecords = await prisma.verificationRequest.findMany({
+    where: {
+      userId: payload.userId,
+      status: "COMPLETED",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 20,
+    select: {
+      id: true,
+      createdAt: true,
+      status: true,
+      riskLevel: true,
+      riskScore: true,
+      extractedData: true,
+    },
+  });
+
+  const verifications: PersonalVerificationItem[] = rawRecords.map((rec) => {
+    let payloadData: StoredHistoryPayload | null = null;
+    try {
+      if (rec.extractedData) {
+        payloadData = JSON.parse(rec.extractedData) as StoredHistoryPayload;
+      }
+    } catch {
+      payloadData = null;
+    }
+
+    const submitted = payloadData?.submitted;
+    const verification = payloadData?.verification;
+    const ocr = payloadData?.extractedOcr;
+
+    return {
+      id: rec.id,
+      createdAt: rec.createdAt.toISOString(),
+      status: rec.status,
+      riskLevel: rec.riskLevel,
+      riskScore: rec.riskScore,
+      category: verification?.category || (rec.riskLevel === "LOW" ? "NO_DISCREPANCIES" : "DIFFERENCES_REQUIRE_REVIEW"),
+      categoryLabelBn: verification?.categoryLabelBn || (rec.riskLevel === "LOW" ? "সঠিক ও মিল রয়েছে" : "অসঙ্গতি রয়েছে"),
+      summaryBn: verification?.summaryBn || "যাচাইকরণ ফলাফল সংরক্ষিত রয়েছে।",
+      mouza: submitted?.mouza,
+      upazila: submitted?.upazila,
+      district: submitted?.district,
+      dagNumber: submitted?.dagNumber,
+      khatianNumber: submitted?.khatianNumber,
+      recordedArea: submitted?.recordedArea,
+      areaUnit: submitted?.areaUnit || "শতক",
+      ownerName: submitted?.ownerName,
+      matchCount: Number(verification?.matchCount) || 0,
+      mismatchCount: Number(verification?.mismatchCount) || 0,
+      missingCount: Number(verification?.missingCount) || 0,
+      hasOcr: Boolean(ocr && Object.keys(ocr).length > 0),
+    };
+  });
+
   return (
-    <DashboardView
-      parcels={SYNTHETIC_DEMO_PARCELS}
-      summary={DEMO_SUMMARY_STATS}
+    <PersonalDashboardView
+      user={user}
+      verifications={verifications}
     />
   );
 }

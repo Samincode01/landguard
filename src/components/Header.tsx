@@ -189,24 +189,24 @@ export default function Header({
 
               {/* In-Page Quick Navigation Jumps (visible on xl screens) */}
               <div className="hidden xl:flex items-center gap-1 pl-2 border-l border-slate-200 text-xs">
-                <a
-                  href={isDashboardActive ? "#map-section" : "/dashboard#map-section"}
+                <Link
+                  href="/dashboard/explore#explore-map-section"
                   className="px-2 py-1 text-slate-500 hover:text-emerald-900 hover:bg-slate-100/80 rounded-md transition font-medium"
                 >
                   {t.nav.map}
-                </a>
-                <a
-                  href={isDashboardActive ? "#records-section" : "/dashboard#records-section"}
+                </Link>
+                <Link
+                  href="/dashboard/explore#explore-table-section"
                   className="px-2 py-1 text-slate-500 hover:text-emerald-900 hover:bg-slate-100/80 rounded-md transition font-medium"
                 >
                   {t.nav.records}
-                </a>
-                <a
-                  href={isDashboardActive ? "#risk-guide" : "/dashboard#risk-guide"}
+                </Link>
+                <Link
+                  href="/dashboard/explore#risk-guide"
                   className="px-2 py-1 text-slate-500 hover:text-emerald-900 hover:bg-slate-100/80 rounded-md transition font-medium"
                 >
                   {t.nav.riskGuide}
-                </a>
+                </Link>
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDashboard } from "@/context/DashboardContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import DisclaimerBanner from "@/components/DisclaimerBanner";
@@ -86,7 +87,13 @@ export interface DetailedRecord {
   riskSummary: Record<string, unknown> | null;
 }
 
-export default function VerificationHistoryView() {
+interface VerificationHistoryViewProps {
+  hideHeaderFooter?: boolean;
+}
+
+export default function VerificationHistoryView({
+  hideHeaderFooter = true,
+}: VerificationHistoryViewProps) {
   const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
 
@@ -240,12 +247,31 @@ export default function VerificationHistoryView() {
   const discrepancyCount = history.filter((h) => h.category === "DIFFERENCES_REQUIRE_REVIEW").length;
   const insufficientCount = history.filter((h) => h.category === "INSUFFICIENT_INFO").length;
 
+  // Dashboard context if embedded
+  let dashboard: ReturnType<typeof useDashboard> | null = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    dashboard = useDashboard();
+  } catch {
+    dashboard = null;
+  }
+
+  const handleOpenVerificationModal = () => {
+    if (dashboard) {
+      dashboard.openVerificationModal();
+    } else {
+      setIsVerificationModalOpen(true);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900">
-      <Header
-        onOpenVerificationModal={() => setIsVerificationModalOpen(true)}
-        onOpenChat={() => setIsChatOpen(true)}
-      />
+    <div className={hideHeaderFooter ? "w-full" : "flex min-h-screen flex-col bg-slate-50 text-slate-900 font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900"}>
+      {!hideHeaderFooter && (
+        <Header
+          onOpenVerificationModal={() => setIsVerificationModalOpen(true)}
+          onOpenChat={() => setIsChatOpen(true)}
+        />
+      )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Compact Civic Tech Disclaimer Banner */}
@@ -277,7 +303,7 @@ export default function VerificationHistoryView() {
 
             <button
               type="button"
-              onClick={() => setIsVerificationModalOpen(true)}
+              onClick={handleOpenVerificationModal}
               className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-800 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-900 transition focus:outline-none focus:ring-2 focus:ring-emerald-700 cursor-pointer active:scale-[0.98]"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -368,7 +394,7 @@ export default function VerificationHistoryView() {
             </div>
             <button
               type="button"
-              onClick={() => setIsVerificationModalOpen(true)}
+              onClick={handleOpenVerificationModal}
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-800 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:bg-emerald-900 transition active:scale-[0.98] cursor-pointer"
             >
               <Plus className="h-4 w-4" />
@@ -765,22 +791,26 @@ export default function VerificationHistoryView() {
         </div>
       )}
 
-      {/* Verification Modal for New Audits */}
-      <VerificationModal
-        isOpen={isVerificationModalOpen}
-        onClose={() => {
-          setIsVerificationModalOpen(false);
-          fetchHistory();
-        }}
-        parcels={SYNTHETIC_DEMO_PARCELS}
-      />
+      {/* Render standalone Header/Footer/Modals ONLY if not embedded in DashboardLayout */}
+      {!hideHeaderFooter && (
+        <>
+          <VerificationModal
+            isOpen={isVerificationModalOpen}
+            onClose={() => {
+              setIsVerificationModalOpen(false);
+              fetchHistory();
+            }}
+            parcels={SYNTHETIC_DEMO_PARCELS}
+          />
 
-      <ChatSupportWidget
-        isOpen={isChatOpen}
-        onOpen={() => setIsChatOpen(true)}
-        onClose={() => setIsChatOpen(false)}
-      />
-      <Footer />
+          <ChatSupportWidget
+            isOpen={isChatOpen}
+            onOpen={() => setIsChatOpen(true)}
+            onClose={() => setIsChatOpen(false)}
+          />
+          <Footer />
+        </>
+      )}
     </div>
   );
 }

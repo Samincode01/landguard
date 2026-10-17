@@ -41,7 +41,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, language } = body as { message?: unknown; language?: unknown };
+    const { message, language, history } = body as {
+      message?: unknown;
+      language?: unknown;
+      history?: unknown;
+    };
     const preferredLang = language === "en" ? "en" : "bn";
 
     // 3. Validate message type and content
@@ -84,8 +88,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Process message through Bhumi Sathi / Gemini / FAQ fallback service
-    const result = await processChatMessage(trimmed, preferredLang);
+    // 5. Sanitize optional history (max 8 turns, valid text)
+    let sanitizedHistory: Array<{ role: "user" | "model"; text: string }> | undefined;
+    if (Array.isArray(history)) {
+      sanitizedHistory = history
+        .filter(
+          (item): item is { role: "user" | "model"; text: string } =>
+            Boolean(
+              item &&
+              typeof item === "object" &&
+              (item.role === "user" || item.role === "model") &&
+              typeof item.text === "string" &&
+              item.text.trim().length > 0 &&
+              item.text.length <= 1000
+            )
+        )
+        .slice(-8);
+    }
+
+    // 6. Process message through Bhumi Sathi / Gemini / FAQ fallback service
+    const result = await processChatMessage(trimmed, preferredLang, sanitizedHistory);
 
     return NextResponse.json(
       {

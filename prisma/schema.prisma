@@ -26,48 +26,67 @@ model User {
 
 /// Core synthetic land parcel record representing geographic and cadastral details in Bangladesh.
 model LandParcel {
-  id           String   @id @default(cuid())
-  district     String   // e.g. "Dhaka", "Gazipur"
-  upazila      String   // e.g. "Savar", "Kaliakair"
-  mouza        String   // Cadastral revenue village / mouza name
-  jlNumber     String   // Jurisdiction List (JL) number
-  khatianNumber String  // Khatian / ledger number in the specified survey
-  dagNumber    String   // Dag / plot number
-  khatianType  String   // Survey type: "CS", "SA", "RS", "BS", "City Survey"
-  recordedArea Float    // Numerical recorded land area
-  areaUnit     String   @default("decimal") // "decimal", "katha", "bigha", "acre", "sqft"
+  id            String   @id @default(cuid())
+  district      String   // e.g. "ঢাকা" or "Dhaka"
+  districtEn    String?  // e.g. "Dhaka"
+  upazila       String   // e.g. "সাভার" or "Savar"
+  upazilaEn     String?  // e.g. "Savar"
+  mouza         String   // Cadastral revenue village / mouza name
+  mouzaEn       String?  // English mouza name
+  jlNumber      String   // Jurisdiction List (JL) number
+  khatianNumber String   // Khatian / ledger number in the specified survey
+  dagNumber     String   // Dag / plot number
+  khatianType   String   // Survey type: "CS", "SA", "RS", "BS", "City Survey"
+  recordedArea  Float    // Numerical recorded land area
+  areaUnit      String   @default("decimal") // "decimal", "katha", "bigha", "acre", "sqft"
+  areaUnitEn    String?  @default("Decimal")
+
+  // Illustrative risk analysis indicators
+  riskLevel     String   @default("LOW")     // "LOW", "MEDIUM", "HIGH"
+  riskScore     Int      @default(10)        // 0 to 100
+  status        String   @default("ACTIVE")  // "ACTIVE", "MUTATION_PENDING", "DISPUTED_CLAIM", etc.
+  statusLabelBn String?
+  statusLabelEn String?
+  notesBn       String?
+  notesEn       String?
 
   // Illustrative approximate map coordinates for demo prototype visualization
-  latitude     Float?
-  longitude    Float?
+  latitude      Float?
+  longitude     Float?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  // Rich metadata: stores history events, litigation, encumbrance, and risk flags as JSON
+  metadata      String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relationships
   ownershipRecords     OwnershipRecord[]
   verificationRequests VerificationRequest[]
 
-  // Localized indexes (Dag/Khatian are scoped to Mouza and geographic boundaries, never globally unique)
+  // Localized indexes
   @@index([district, upazila, mouza])
   @@index([mouza, dagNumber])
   @@index([mouza, khatianNumber])
+  @@index([riskLevel])
 }
 
 /// Synthetic historical or active ownership record tied to a specific parcel.
 model OwnershipRecord {
-  id           String      @id @default(cuid())
-  ownerName    String      // Synthetic demo owner name
-  landParcelId String
-  landParcel   LandParcel  @relation(fields: [landParcelId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  ownerName     String      // Synthetic demo owner name
+  ownerNameEn   String?     // English owner name
+  landParcelId  String
+  landParcel    LandParcel  @relation(fields: [landParcelId], references: [id], onDelete: Cascade)
 
-  deedNumber   String?     // Synthetic deed / dalil reference number
-  recordedArea Float?      // Area portion owned under this record
-  areaUnit     String?     @default("decimal")
-  status       String      @default("ACTIVE") // "ACTIVE", "MUTATED", "HISTORICAL", "DISPUTED"
+  deedNumber    String?     // Synthetic deed / dalil reference number
+  recordedArea  Float?      // Area portion owned under this record
+  areaUnit      String?     @default("decimal")
+  status        String      @default("ACTIVE") // "ACTIVE", "MUTATED", "HISTORICAL", "DISPUTED"
+  statusLabelBn String?
 
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([landParcelId])
   @@index([ownerName])
