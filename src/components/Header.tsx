@@ -4,9 +4,10 @@ import React from "react";
 
 interface HeaderProps {
   onOpenVerificationModal: () => void;
+  onOpenChat?: () => void;
 }
 
-export default function Header({ onOpenVerificationModal }: HeaderProps) {
+export default function Header({ onOpenVerificationModal, onOpenChat }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/98 backdrop-blur-md shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -61,6 +62,16 @@ export default function Header({ onOpenVerificationModal }: HeaderProps) {
             >
               ঝুঁকি সহায়িকা
             </a>
+            {onOpenChat && (
+              <button
+                type="button"
+                onClick={onOpenChat}
+                className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-emerald-800 hover:bg-slate-50 rounded-lg transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>সহায়তা চ্যাট</span>
+                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.2 font-semibold">AI</span>
+              </button>
+            )}
           </nav>
 
           {/* Demo badge — smaller, less distracting */}

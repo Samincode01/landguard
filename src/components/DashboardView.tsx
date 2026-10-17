@@ -10,6 +10,7 @@ import ParcelMap from "./ParcelMap";
 import ParcelTable from "./ParcelTable";
 import AboutSection from "./AboutSection";
 import VerificationModal from "./VerificationModal";
+import ChatSupportWidget from "./ChatSupportWidget";
 import Footer from "./Footer";
 
 interface DashboardViewProps {
@@ -21,6 +22,7 @@ export default function DashboardView({ parcels, summary }: DashboardViewProps) 
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [selectedParcelForVerification, setSelectedParcelForVerification] = useState<string | null>(null);
   const [highlightedParcelId, setHighlightedParcelId] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleOpenVerification = (parcelId?: string) => {
     setSelectedParcelForVerification(parcelId || null);
@@ -48,7 +50,10 @@ export default function DashboardView({ parcels, summary }: DashboardViewProps) 
       {/* Dashboard Screen Content (Isolated and hidden in print mode) */}
       <div id="dashboard-view-content" className="no-print dashboard-screen-content flex flex-col flex-1 w-full">
         {/* Navigation Header */}
-        <Header onOpenVerificationModal={() => handleOpenVerification()} />
+        <Header
+          onOpenVerificationModal={() => handleOpenVerification()}
+          onOpenChat={() => setIsChatOpen(true)}
+        />
 
         {/* Main Content Area */}
         <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
@@ -85,6 +90,13 @@ export default function DashboardView({ parcels, summary }: DashboardViewProps) 
         {/* Footer */}
         <Footer />
       </div>
+
+      {/* Floating Chat Support Widget */}
+      <ChatSupportWidget
+        isOpen={isChatOpen}
+        onOpen={() => setIsChatOpen(true)}
+        onClose={() => setIsChatOpen(false)}
+      />
 
       {/* Verification Functional Modal */}
       {isVerificationModalOpen && (

@@ -1,0 +1,96 @@
+/**
+ * Chat Support API Route
+ * POST /api/chat
+ * LandGuard BD — Civic Tech for Land Due Diligence (Track P5)
+ *
+ * Provides safe conversational endpoints for land record due diligence.
+ * Enforces server-side secret isolation, rate/size limits, and zero persistence.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { processChatMessage } from "@/lib/gemini-service";
+
+const MAX_MESSAGE_LENGTH = 500;
+
+export async function POST(request: NextRequest) {
+  try {
+    // 1. Content-Type check
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return NextResponse.json(
+        { error: "অনুরোধের ফরম্যাট অবৈধ। JSON ফরম্যাটে ডেটা প্রেরণ করুন।" },
+        { status: 400 }
+      );
+    }
+
+    // 2. Parse request body safely
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "অনুরোধের JSON পার্স করা সম্ভব হয়নি।" },
+        { status: 400 }
+      );
+    }
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "অনুরোধের বডি সঠিক নয়।" },
+        { status: 400 }
+      );
+    }
+
+    const { message } = body as { message?: unknown };
+
+    // 3. Validate message type and content
+    if (typeof message !== "string") {
+      return NextResponse.json(
+        { error: "বার্তার ধরন অবশ্যই টেক্সট হতে হবে।" },
+        { status: 400 }
+      );
+    }
+
+    const trimmed = message.trim();
+
+    if (!trimmed) {
+      return NextResponse.json(
+        { error: "বার্তা খালি হতে পারে না। অনুগ্রহ করে আপনার প্রশ্নটি লিখুন।" },
+        { status: 400 }
+      );
+    }
+
+    // 4. Message length safeguard
+    if (trimmed.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        {
+          error: `বার্তার দৈর্ঘ্য অতিরিক্ত বড়। সর্বোচ্চ ${MAX_MESSAGE_LENGTH} অক্ষরের মধ্যে আপনার প্রশ্নটি সংক্ষেপ করুন।`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // 5. Process message through Gemini / FAQ fallback service
+    const result = await processChatMessage(trimmed);
+
+    return NextResponse.json(
+      {
+        reply: result.reply,
+        source: result.source,
+        suggestedQuestions: result.suggestedQuestions,
+        notice: result.notice,
+      },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Internal server error";
+    console.error("[API /api/chat Error]", errorMsg);
+
+    return NextResponse.json(
+      {
+        error: "সার্ভারে একটি সাময়িক সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর পুনরায় চেষ্টা করুন।",
+      },
+      { status: 500 }
+    );
+  }
+}
