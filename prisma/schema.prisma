@@ -7,7 +7,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+}
+
+/// Registered citizen, professional, or official user account for LandGuard BD.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String
+  occupation   String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  verificationRequests VerificationRequest[]
 }
 
 /// Core synthetic land parcel record representing geographic and cadastral details in Bangladesh.
@@ -63,8 +77,11 @@ model OwnershipRecord {
 /// Stores synthetic document metadata and extracted fields without binary uploads.
 model VerificationRequest {
   id                 String       @id @default(cuid())
+  userId             String?      // Authenticated user ID owning this verification record
+  user               User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   documentFilename   String?      // Client-provided document filename only (no binary stored)
-  extractedData      String?      // SQLite-safe JSON string of parsed cadastral/deed attributes
+  extractedData      String?      // SQLite/PostgreSQL JSON string of parsed cadastral/deed attributes, submission, and discrepancy details
   
   targetLandParcelId String?      // Optional match to a synthetic demo parcel
   targetLandParcel   LandParcel?  @relation(fields: [targetLandParcelId], references: [id], onDelete: SetNull)
@@ -80,6 +97,7 @@ model VerificationRequest {
   // Relationships
   riskFlags          RiskFlag[]
 
+  @@index([userId])
   @@index([status])
   @@index([riskLevel])
   @@index([targetLandParcelId])

@@ -41,12 +41,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message } = body as { message?: unknown };
+    const { message, language } = body as { message?: unknown; language?: unknown };
+    const preferredLang = language === "en" ? "en" : "bn";
 
     // 3. Validate message type and content
     if (typeof message !== "string") {
       return NextResponse.json(
-        { error: "বার্তার ধরন অবশ্যই টেক্সট হতে হবে।" },
+        {
+          error:
+            preferredLang === "en"
+              ? "Invalid message format. Text message required."
+              : "বার্তার ধরন অবশ্যই টেক্সট হতে হবে।",
+        },
         { status: 400 }
       );
     }
@@ -55,7 +61,12 @@ export async function POST(request: NextRequest) {
 
     if (!trimmed) {
       return NextResponse.json(
-        { error: "বার্তা খালি হতে পারে না। অনুগ্রহ করে আপনার প্রশ্নটি লিখুন।" },
+        {
+          error:
+            preferredLang === "en"
+              ? "Message cannot be empty. Please enter your question."
+              : "বার্তা খালি হতে পারে না। অনুগ্রহ করে আপনার প্রশ্নটি লিখুন।",
+        },
         { status: 400 }
       );
     }
@@ -64,14 +75,17 @@ export async function POST(request: NextRequest) {
     if (trimmed.length > MAX_MESSAGE_LENGTH) {
       return NextResponse.json(
         {
-          error: `বার্তার দৈর্ঘ্য অতিরিক্ত বড়। সর্বোচ্চ ${MAX_MESSAGE_LENGTH} অক্ষরের মধ্যে আপনার প্রশ্নটি সংক্ষেপ করুন।`,
+          error:
+            preferredLang === "en"
+              ? `Message is too long. Please summarize your query within ${MAX_MESSAGE_LENGTH} characters.`
+              : `বার্তার দৈর্ঘ্য অতিরিক্ত বড়। সর্বোচ্চ ${MAX_MESSAGE_LENGTH} অক্ষরের মধ্যে আপনার প্রশ্নটি সংক্ষেপ করুন।`,
         },
         { status: 400 }
       );
     }
 
-    // 5. Process message through Gemini / FAQ fallback service
-    const result = await processChatMessage(trimmed);
+    // 5. Process message through Bhumi Sathi / Gemini / FAQ fallback service
+    const result = await processChatMessage(trimmed, preferredLang);
 
     return NextResponse.json(
       {
@@ -79,16 +93,17 @@ export async function POST(request: NextRequest) {
         source: result.source,
         suggestedQuestions: result.suggestedQuestions,
         notice: result.notice,
+        isLive: result.isLive ?? (result.source === "GEMINI_AI"),
       },
       { status: 200 }
     );
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : "Internal server error";
-    console.error("[API /api/chat Error]", errorMsg);
+    console.error("[Bhumi Sathi API Error]", errorMsg);
 
     return NextResponse.json(
       {
-        error: "সার্ভারে একটি সাময়িক সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর পুনরায় চেষ্টা করুন।",
+        error: "সার্ভারে একটি সাময়িক সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর পুনরায় চেষ্টা করুন। (A temporary server error occurred. Please try again shortly.)",
       },
       { status: 500 }
     );

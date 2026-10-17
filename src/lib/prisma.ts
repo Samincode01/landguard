@@ -1,18 +1,15 @@
-import "server-only";
-import path from "node:path";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+if (typeof window !== "undefined") {
+  throw new Error("This module can only be executed in a server environment.");
+}
+import "dotenv/config";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 
 function createPrismaClient(): PrismaClient {
-  const rawUrl = process.env.DATABASE_URL || "file:./dev.db";
-  const filePath = rawUrl.startsWith("file:") ? rawUrl.slice(5) : rawUrl;
-  const resolvedPath = path.isAbsolute(filePath)
-    ? filePath
-    : path.resolve(process.cwd(), filePath);
-
-  const adapter = new PrismaBetterSqlite3({
-    url: resolvedPath,
-  });
+  const connectionString = process.env.DATABASE_URL;
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
 
   return new PrismaClient({ adapter });
 }

@@ -12,6 +12,7 @@ import {
 } from "@/lib/map-utils";
 import { analyzeParcelRisk } from "@/lib/risk-analysis";
 import { toBengaliNumerals } from "@/lib/formatters";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ParcelMapInnerProps {
   parcels: DemoLandParcel[];
@@ -28,6 +29,11 @@ export default function ParcelMapInner({
   onOpenVerification,
   onScrollToTable,
 }: ParcelMapInnerProps) {
+  const { t, language } = useLanguage();
+
+  const formatNum = (val: number | string) => {
+    return language === "bn" ? toBengaliNumerals(val) : String(val);
+  };
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const geoJsonLayerGroupRef = useRef<L.FeatureGroup | null>(null);
@@ -251,46 +257,52 @@ export default function ParcelMapInner({
       {/* Main Map + Side Detail Panel Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Leaflet Map Canvas */}
-        <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-100 shadow-xs">
+        <div className="lg:col-span-2 relative overflow-hidden rounded-xl border border-slate-200/90 bg-slate-100 shadow-2xs">
           <div
             ref={mapContainerRef}
-            className="h-[380px] sm:h-[460px] w-full z-10"
-            aria-label="ইন্টারেক্টিভ নমুনা জমির মানচিত্র"
+            className="h-[340px] sm:h-[420px] w-full z-10"
+            aria-label={t.map.title}
           />
 
           {/* Floating Notice on bottom-left of map */}
-          <div className="absolute bottom-2 left-2 z-20 max-w-[280px] rounded-lg bg-white/95 px-2.5 py-1.5 text-2xs text-slate-500 backdrop-blur-xs border border-slate-200 shadow-xs pointer-events-none">
-            <span className="font-semibold text-slate-700">কাল্পনিক প্রদর্শনী:</span>{" "}
-            মানচিত্রের সীমানা ও অবস্থান কৃত্রিম নমুনা মাত্র — কোনো বাস্তব মৌজা নকশা নয়।
+          <div className="absolute bottom-2 left-2 z-20 max-w-[280px] rounded-lg bg-white/95 px-2.5 py-1 text-2xs text-slate-500 backdrop-blur-xs border border-slate-200 shadow-xs pointer-events-none">
+            <span className="font-semibold text-slate-700">
+              {language === "en" ? "Demo Visualizer:" : "কাল্পনিক প্রদর্শনী:"}
+            </span>{" "}
+            {t.map.boundaryNote}
           </div>
         </div>
 
         {/* Selected Parcel Details Card */}
-        <div className="lg:col-span-1 flex flex-col rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs justify-between space-y-4">
+        <div className="lg:col-span-1 flex flex-col rounded-xl border border-slate-200/90 bg-white p-3.5 sm:p-4 shadow-2xs justify-between space-y-3.5">
           {activeParcel && activeAnalysis ? (
-            <div className="space-y-3.5 flex-1">
+            <div className="space-y-3 flex-1">
               {/* Header */}
-              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
-                      নির্বাচিত প্লট
+                      {t.map.selectedParcel}
                     </span>
                     <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-2xs font-mono text-slate-500">
                       {activeParcel.id}
                     </span>
                   </div>
-                  <h4 className="text-base font-bold text-slate-900 mt-0.5">
-                    দাগ নং {activeParcel.dagNumber} — মৌজা {activeParcel.mouza}
+                  <h4 className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
+                    {language === "en"
+                      ? `Dag ${formatNum(activeParcel.dagNumber)} — Mouza: ${activeParcel.mouzaEn}`
+                      : `দাগ নং ${formatNum(activeParcel.dagNumber)} — মৌজা ${activeParcel.mouza}`}
                   </h4>
                   <p className="text-xs text-slate-500">
-                    {activeParcel.upazila}, {activeParcel.district}
+                    {language === "en"
+                      ? `${activeParcel.upazilaEn}, ${activeParcel.districtEn}`
+                      : `${activeParcel.upazila}, ${activeParcel.district}`}
                   </p>
                 </div>
 
                 {/* Outcome Badge */}
                 <span
-                  className={`text-2xs font-bold px-2.5 py-1 rounded-full border shrink-0 ${
+                  className={`text-2xs font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                     activeAnalysis.outcome === "NO_FLAGGED_DISCREPANCIES"
                       ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                       : activeAnalysis.outcome === "NEEDS_REVIEW"
@@ -298,35 +310,41 @@ export default function ParcelMapInner({
                       : "bg-amber-50 text-amber-800 border-amber-200"
                   }`}
                 >
-                  {activeAnalysis.outcomeLabelBn}
+                  {language === "en"
+                    ? activeAnalysis.outcome === "NO_FLAGGED_DISCREPANCIES"
+                      ? "Verified Match"
+                      : activeAnalysis.outcome === "NEEDS_REVIEW"
+                      ? "Needs Review"
+                      : "Caution"
+                    : activeAnalysis.outcomeLabelBn}
                 </span>
               </div>
 
               {/* Cadastral Specs Grid */}
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
-                  <span className="text-2xs text-slate-400 block">খতিয়ান ও জরিপ</span>
-                  <span className="font-semibold text-slate-800 bn-num">
-                    {activeParcel.khatianNumber} ({activeParcel.khatianType})
+                  <span className="text-2xs text-slate-400 block">{t.map.specsKhatianSurvey}</span>
+                  <span className="font-semibold text-slate-800 bn-num text-xs">
+                    {formatNum(activeParcel.khatianNumber)} ({activeParcel.khatianType})
                   </span>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
-                  <span className="text-2xs text-slate-400 block">জমির পরিমাণ</span>
-                  <span className="font-semibold text-slate-800 bn-num">
-                    {toBengaliNumerals(activeParcel.recordedArea)} {activeParcel.areaUnit}
+                  <span className="text-2xs text-slate-400 block">{t.map.specsArea}</span>
+                  <span className="font-semibold text-slate-800 bn-num text-xs">
+                    {formatNum(activeParcel.recordedArea)} {language === "en" ? activeParcel.areaUnitEn || activeParcel.areaUnit : activeParcel.areaUnit}
                   </span>
                 </div>
                 <div className="col-span-2 rounded-lg bg-slate-50 p-2 border border-slate-100">
-                  <span className="text-2xs text-slate-400 block">নথিভুক্ত মালিক</span>
-                  <span className="font-medium text-slate-800">
-                    {activeParcel.ownership.ownerName}
+                  <span className="text-2xs text-slate-400 block">{t.map.specsOwner}</span>
+                  <span className="font-medium text-slate-800 text-xs">
+                    {language === "en" ? activeParcel.ownership.ownerNameEn : activeParcel.ownership.ownerName}
                   </span>
                 </div>
               </div>
 
               {/* Risk Summary Note */}
               <div
-                className={`rounded-xl p-3 text-xs leading-relaxed border ${
+                className={`rounded-lg p-2.5 sm:p-3 text-xs leading-relaxed border ${
                   activeAnalysis.outcome === "NO_FLAGGED_DISCREPANCIES"
                     ? "bg-emerald-50/70 border-emerald-200 text-emerald-950"
                     : activeAnalysis.outcome === "NEEDS_REVIEW"
@@ -334,7 +352,7 @@ export default function ParcelMapInner({
                     : "bg-amber-50/70 border-amber-200 text-amber-950"
                 }`}
               >
-                <div className="font-bold mb-1 flex items-center gap-1.5">
+                <div className="font-bold mb-1 flex items-center gap-1.5 text-xs">
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
                       activeAnalysis.outcome === "NO_FLAGGED_DISCREPANCIES"
@@ -344,11 +362,11 @@ export default function ParcelMapInner({
                         : "bg-amber-600"
                     }`}
                   />
-                  <span>স্বয়ংক্রিয় প্রাক-নিরীক্ষা ফলাফল:</span>
+                  <span>{t.map.preAuditOutcome}</span>
                 </div>
-                <p>{activeAnalysis.summaryBn}</p>
+                <p className="text-xs">{activeAnalysis.summaryBn}</p>
                 {activeAnalysis.warnings.length > 0 && (
-                  <ul className="mt-1.5 space-y-1 list-disc pl-4 text-2xs text-rose-900 font-medium">
+                  <ul className="mt-1 space-y-0.5 list-disc pl-4 text-2xs text-rose-900 font-medium">
                     {activeAnalysis.warnings.map((w, idx) => (
                       <li key={idx}>{w.ruleTitleBn}</li>
                     ))}
@@ -358,14 +376,13 @@ export default function ParcelMapInner({
 
               {/* Synthetic Disclaimer */}
               <p className="text-2xs text-slate-400 italic">
-                * কৃত্রিম ডেমো স্থানাঙ্ক ({activeParcel.approxLocation?.lat},{" "}
-                {activeParcel.approxLocation?.lng}) — কোনো বাস্তব সীমানা নির্দেশ করে না।
+                {t.map.syntheticCoordsNote}
               </p>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center flex-1 py-10 text-center text-slate-400 space-y-2">
+            <div className="flex flex-col items-center justify-center flex-1 py-8 text-center text-slate-400 space-y-1.5">
               <svg
-                className="h-10 w-10 text-slate-300"
+                className="h-8 w-8 text-slate-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -377,32 +394,32 @@ export default function ParcelMapInner({
                   d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.814c-.319-.16-.69-.16-1.008 0L4.625 5.75c-.38.19-.625.58-.625 1.006v11.928c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.997 2.498c.319.16.69.16 1.008 0z"
                 />
               </svg>
-              <p className="text-xs font-semibold text-slate-600">কোনো প্লট নির্বাচিত নেই</p>
+              <p className="text-xs font-semibold text-slate-600">{t.map.noParcelSelected}</p>
               <p className="text-2xs text-slate-400 max-w-[200px]">
-                মানচিত্রের যেকোনো মার্কার বা পলিগনে ক্লিক করে জমির বিস্তারিত ও ঝুঁকি বিশ্লেষণ দেখুন।
+                {t.map.noParcelSelectedSub}
               </p>
             </div>
           )}
 
           {/* Action Buttons */}
           {activeParcel && (
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+            <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
               {onScrollToTable && (
                 <button
                   type="button"
                   onClick={() => onScrollToTable(activeParcel.id)}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs text-center"
+                  className="flex-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs text-center cursor-pointer"
                 >
-                  তালিকায় বিশদ দেখুন
+                  {t.map.viewInTable}
                 </button>
               )}
               {onOpenVerification && (
                 <button
                   type="button"
                   onClick={() => onOpenVerification(activeParcel.id)}
-                  className="flex-1 rounded-xl bg-emerald-800 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-900 transition shadow-xs text-center"
+                  className="flex-1 rounded-lg bg-emerald-800 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-900 transition shadow-2xs text-center cursor-pointer"
                 >
-                  দলিল যাচাই করুন
+                  {t.map.verifyDeed}
                 </button>
               )}
             </div>

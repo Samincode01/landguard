@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
-  --font-bangla: var(--font-hind-siliguri), "Hind Siliguri", "Noto Sans Bengali", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-bangla: var(--font-noto-bengali), var(--font-hind-siliguri), "Noto Sans Bengali", "Hind Siliguri", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 @theme inline {

@@ -86,10 +86,105 @@ export function scoreFaqItem(normalizedQuery: string, item: LandFaqItem): number
   return score;
 }
 
+const FAQ_ENGLISH_ANSWERS: Record<
+  string,
+  {
+    answer: string;
+    officialSource: string;
+    disclaimer: string;
+    suggestedPrompt: string;
+  }
+> = {
+  "faq-khatian-definition": {
+    answer:
+      "A Khatian (commonly known as 'Porcha') is the official Record of Rights (ROR) prepared by the government during cadastral land surveys. It records the district, upazila, mouza name, JL number, khatian number, dag (plot) numbers, recorded land area, land classification (nal, viti, pond, homestead, etc.), and owner/co-sharer names with their respective shares.",
+    officialSource: "Upazila Assistant Commissioner (Land) Office & Directorate of Land Records and Surveys (DLRS)",
+    disclaimer:
+      "Having a name in a khatian indicates preliminary record possession, but is not a conclusive guarantee of legal title. Chain of historical deeds (baya dalil) and updated mutation records must be verified.",
+    suggestedPrompt: "What is a khatian or porcha?",
+  },
+  "faq-dag-number": {
+    answer:
+      "A Dag Number (Plot Number) is a distinct cadastral serial number assigned to a specific parcel of land on an official Mouza Map. It defines the physical boundaries, dimensions, neighbors (chouhaddi), and location of the plot within the revenue mouza.",
+    officialSource: "Directorate of Land Records and Surveys & Upazila Land Office",
+    disclaimer:
+      "Always verify that physical boundaries on the ground match the mouza map with a government-licensed surveyor/amin before purchasing.",
+    suggestedPrompt: "What is a dag number?",
+  },
+  "faq-mouza-jl": {
+    answer:
+      "A Mouza is the basic cadastral revenue survey village unit in Bangladesh. Each mouza within an upazila has a permanent Jurisdiction List (J.L.) number used to index cadastral maps and survey registers.",
+    officialSource: "Upazila Land Office & Sub-Registry Office",
+    disclaimer:
+      "Make sure that deed, khatian, and tax receipts specify the identical mouza and J.L. number.",
+    suggestedPrompt: "What are mouza and JL numbers?",
+  },
+  "faq-survey-types": {
+    answer:
+      "Major land surveys in Bangladesh include: CS (Cadastral Survey, 1888–1940, baseline record), SA (State Acquisition, 1956–1962, post-zamindari abolition), RS (Revisional Survey, corrected modern survey), and BS/City Survey (Bangladesh Survey, the most recent updated cadastral record).",
+    officialSource: "Directorate of Land Records and Surveys (DLRS)",
+    disclaimer:
+      "Always trace chain of title across all surveys (from CS through SA and RS to BS) to detect gaps or unauthorized mutations.",
+    suggestedPrompt: "What are CS, SA, RS, and BS surveys?",
+  },
+  "faq-mutation-process": {
+    answer:
+      "Mutation (Namjari) is the mandatory government process by which a new land owner's name is registered in the revenue record (khatian) after buying or inheriting land. It cancels the previous owner's name and generates a mutation khatian, DCR, and enables payment of Land Development Tax in the buyer's name.",
+    officialSource: "Upazila Assistant Commissioner (Land) Office (mutation.land.gov.bd)",
+    disclaimer:
+      "A registered deed alone does not update revenue records. Without namjari, property cannot be legally transferred or verified for future sale.",
+    suggestedPrompt: "Why is mutation (namjari) necessary?",
+  },
+  "faq-chain-of-title": {
+    answer:
+      "Chain of Title (Baya Dalil) refers to the unbroken chronological sequence of previous sale deeds and ownership documents tracing back at least 25–30 years from the original survey owner to the current seller. Missing links or unverified powers of attorney indicate severe fraud risks.",
+    officialSource: "Sub-Registry Office & District Registrar Office",
+    disclaimer:
+      "Search original deed volume books (Balam Boi) at the Sub-Registry office through an official Non-Encumbrance Certificate (NEC) search.",
+    suggestedPrompt: "How do I check chain of title and baya dalil?",
+  },
+  "faq-official-portals": {
+    answer:
+      "Official government portals for land services include: e-Porcha (eporcha.gov.bd) for certified khatian and mouza maps, e-Mutation (mutation.land.gov.bd) for online mutation applications, and ldtax.gov.bd for Land Development Tax. For physical verification, contact your local Upazila AC (Land) or Sub-Registry office.",
+    officialSource: "Ministry of Land (land.gov.bd)",
+    disclaimer:
+      "Always cross-check electronic records with physical certified copies at the relevant revenue and registry offices.",
+    suggestedPrompt: "Which government offices handle land records?",
+  },
+  "faq-landguard-scope": {
+    answer:
+      "LandGuard BD is a civic-tech due diligence tool that compares submitted document and deed details against cadastral records to highlight discrepancies and fraud red flags. It provides educational risk assessment; it does NOT provide formal legal certification or replace official government verification.",
+    officialSource: "LandGuard BD Civic Tech Prototype",
+    disclaimer:
+      "For binding legal verification, always consult a licensed advocate and obtain certified records from the relevant government offices.",
+    suggestedPrompt: "What can LandGuard BD do and not do?",
+  },
+};
+
 /**
- * Formats a matched LandFaqItem into a friendly, structured Bengali assistant response.
+ * Formats a matched LandFaqItem into a friendly, structured assistant response.
  */
-export function formatFaqResponse(item: LandFaqItem): string {
+export function formatFaqResponse(item: LandFaqItem, language: "bn" | "en" = "bn"): string {
+  if (language === "en") {
+    const en = FAQ_ENGLISH_ANSWERS[item.id];
+    let response = en ? en.answer : item.answerBn;
+
+    if (item.officialSourceBn) {
+      response += `\n\n📌 Official Authority: ${en?.officialSource || item.officialSourceBn}`;
+    }
+
+    if (item.verifiedUrl) {
+      response += `\n🌐 Verified Government Portal: ${item.verifiedUrl}`;
+    }
+
+    const disclaimer = en?.disclaimer || item.disclaimerBn;
+    if (disclaimer) {
+      response += `\n\n⚠️ Advisory Note: ${disclaimer}`;
+    }
+
+    return response;
+  }
+
   let response = item.answerBn;
 
   if (item.officialSourceBn) {
@@ -113,25 +208,37 @@ export function formatFaqResponse(item: LandFaqItem): string {
 export const DEFAULT_FALLBACK_BN =
   "দুঃখিত, আপনার নির্দিষ্ট প্রশ্নটির জন্য ল্যান্ডগার্ড বিডির সংরক্ষিত তথ্যাবলীতে পর্যাপ্ত উত্তর পাওয়া যায়নি।\n\nযেহেতু ভূমি সংক্রান্ত বিষয়াদি অত্যন্ত সংবেদনশীল এবং আইনি গুরুত্বসম্পন্ন, তাই কোনো নির্দিষ্ট দলিল, স্বত্ব বা ফি সম্পর্কে নিশ্চিত হতে সংশ্লিষ্ট উপজেলা সহকারী কমিশনার (ভূমি) অফিস, সাব-রেজিস্ট্রি অফিস বা একজন অভিজ্ঞ আইনজীবীর সাথে সশরীরে যোগাযোগ করার পরামর্শ দেওয়া হচ্ছে।\n\nআপনি চাইলে নিচের বিষয়গুলো থেকে কোনো একটি জানতে পারেন:";
 
+export const DEFAULT_FALLBACK_EN =
+  "I'm sorry, but our curated land knowledge base does not have a definitive answer for this specific query.\n\nSince land matters in Bangladesh are legally sensitive and consequential, please consult your local Upazila Assistant Commissioner (Land) office, Sub-Registry office, or a qualified advocate for official confirmation.\n\nYou may explore one of these related topics:";
+
 /**
  * Finds the best FAQ match for a user's question, or returns a graceful educational fallback.
  */
 export function findBestFaqMatch(
   query: string,
-  minThreshold: number = 4
+  minThreshold: number = 4,
+  language: "bn" | "en" = "bn"
 ): FaqMatchResult {
   const norm = normalizeQuery(query);
 
-  const fallbackQuestions = LAND_FAQ_KNOWLEDGE_BASE.slice(0, 4).map(
-    (item) => item.suggestedPromptBn
-  );
+  const fallbackQuestions =
+    language === "en"
+      ? [
+          "What is a khatian?",
+          "How do I find a dag number?",
+          "What are CS, SA, RS, and BS surveys?",
+          "Why is mutation (namjari) necessary?",
+        ]
+      : LAND_FAQ_KNOWLEDGE_BASE.slice(0, 4).map((item) => item.suggestedPromptBn);
 
   if (!norm) {
     return {
       matched: false,
       score: 0,
       formattedResponseBn:
-        "অনুগ্রহ করে ভূমি সংক্রান্ত আপনার প্রশ্নটি লিখুন (যেমন: 'খতিয়ান কী?', 'নামজারি কেন জরুরি?' বা 'বায়া দলিল কীভাবে পরীক্ষা করব?')।",
+        language === "en"
+          ? "Please enter a land-related question (e.g., 'What is a khatian?', 'Why is mutation necessary?', or 'How to check chain of title?')."
+          : "অনুগ্রহ করে ভূমি সংক্রান্ত আপনার প্রশ্নটি লিখুন (যেমন: 'খতিয়ান কী?', 'নামজারি কেন জরুরি?' বা 'বায়া দলিল কীভাবে পরীক্ষা করব?')।",
       source: "FALLBACK",
       suggestedQuestions: fallbackQuestions,
     };
@@ -150,17 +257,20 @@ export function findBestFaqMatch(
 
   if (bestItem && highestScore >= minThreshold) {
     // Generate alternate suggested prompts
-    const alternateSuggestions = LAND_FAQ_KNOWLEDGE_BASE.filter(
-      (i) => i.id !== bestItem!.id
-    )
-      .slice(0, 3)
-      .map((i) => i.suggestedPromptBn);
+    const alternateSuggestions =
+      language === "en"
+        ? LAND_FAQ_KNOWLEDGE_BASE.filter((i) => i.id !== bestItem!.id)
+            .slice(0, 3)
+            .map((i) => FAQ_ENGLISH_ANSWERS[i.id]?.suggestedPrompt || i.suggestedPromptBn)
+        : LAND_FAQ_KNOWLEDGE_BASE.filter((i) => i.id !== bestItem!.id)
+            .slice(0, 3)
+            .map((i) => i.suggestedPromptBn);
 
     return {
       matched: true,
       score: highestScore,
       item: bestItem,
-      formattedResponseBn: formatFaqResponse(bestItem),
+      formattedResponseBn: formatFaqResponse(bestItem, language),
       source: "FAQ_MATCH",
       suggestedQuestions: alternateSuggestions,
     };
@@ -169,7 +279,7 @@ export function findBestFaqMatch(
   return {
     matched: false,
     score: highestScore,
-    formattedResponseBn: DEFAULT_FALLBACK_BN,
+    formattedResponseBn: language === "en" ? DEFAULT_FALLBACK_EN : DEFAULT_FALLBACK_BN,
     source: "FALLBACK",
     suggestedQuestions: fallbackQuestions,
   };
