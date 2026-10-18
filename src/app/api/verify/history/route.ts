@@ -204,6 +204,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const idParam = request.nextUrl.searchParams.get("id");
+    if (idParam) {
+      const record = await prisma.verificationRequest.findUnique({
+        where: { id: idParam },
+      });
+
+      if (!record) {
+        return NextResponse.json(
+          { error: "যাচাইকরণ রেকর্ডটি খুঁজে পাওয়া যায়নি।" },
+          { status: 404 }
+        );
+      }
+
+      if (record.userId !== payload.userId) {
+        return NextResponse.json(
+          { error: "অননুমোদিত অ্যাক্সেস। এই যাচাইকরণ রেকর্ডের মালিকানা আপনার নয়।" },
+          { status: 403 }
+        );
+      }
+
+      let parsedData = null;
+      try {
+        if (record.extractedData) {
+          parsedData = JSON.parse(record.extractedData);
+        }
+      } catch {
+        parsedData = null;
+      }
+
+      const singleVerification = {
+        id: record.id,
+        createdAt: record.createdAt,
+        status: record.status,
+        riskLevel: record.riskLevel,
+        riskScore: record.riskScore,
+        documentFilename: record.documentFilename,
+        notes: record.notes,
+        submitted: parsedData?.submitted || null,
+        verification: parsedData?.verification || null,
+        extractedOcr: parsedData?.extractedOcr || null,
+        riskSummary: parsedData?.riskSummary || null,
+      };
+
+      return NextResponse.json(
+        {
+          verification: singleVerification,
+          record: singleVerification,
+        },
+        { status: 200 }
+      );
+    }
+
     // Strict ownership filter: only retrieve records belonging to the authenticated user
     const records = await prisma.verificationRequest.findMany({
       where: {

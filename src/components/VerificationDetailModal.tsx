@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   FileText,
@@ -9,8 +9,13 @@ import {
   Printer,
   X,
 } from "lucide-react";
+import VerificationReport from "./VerificationReport";
+import {
+  transformSavedRecordToVerificationResult,
+  SavedVerificationRecord,
+} from "@/lib/verification";
 
-export interface DetailedRecord {
+export interface DetailedRecord extends SavedVerificationRecord {
   id: string;
   createdAt: string;
   status: string;
@@ -18,28 +23,6 @@ export interface DetailedRecord {
   riskScore: number | null;
   documentFilename: string | null;
   notes: string | null;
-  submitted: Record<string, string> | null;
-  verification: {
-    category: string;
-    categoryLabelBn: string;
-    summaryBn: string;
-    advisoryBn: string;
-    matchCount: number;
-    mismatchCount: number;
-    missingCount: number;
-    discrepancyReasons: string[];
-    fieldResults: Array<{
-      fieldName: string;
-      fieldLabelBn: string;
-      referenceValue: string;
-      submittedValue: string;
-      status: "MATCH" | "MISMATCH" | "MISSING";
-      statusLabelBn: string;
-      reasonBn?: string;
-    }>;
-  } | null;
-  extractedOcr: Record<string, { value: string | null; confidence: string }> | null;
-  riskSummary: Record<string, unknown> | null;
 }
 
 interface VerificationDetailModalProps {
@@ -55,26 +38,48 @@ export default function VerificationDetailModal({
   const [record, setRecord] = useState<DetailedRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"summary" | "report">("summary");
+  const [prevRecordId, setPrevRecordId] = useState<string | null>(recordId);
+
+  if (recordId !== prevRecordId) {
+    setPrevRecordId(recordId);
+    setLoading(true);
+    setError(null);
+    setViewMode("summary");
+  }
 
   useEffect(() => {
     if (!recordId) return;
 
     let isMounted = true;
 
-    fetch(`/api/verify/history?id=${encodeURIComponent(recordId)}`)
+    fetch(`/api/verify/history/${encodeURIComponent(recordId)}`, {
+      headers: { "Cache-Control": "no-cache" },
+    })
       .then(async (res) => {
         if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
           throw new Error(
-            language === "en"
-              ? "Failed to load verification record details."
-              : "রেকর্ডের বিস্তারিত লোড করা সম্ভব হয়নি।"
+            errData.error ||
+              (language === "en"
+                ? "Failed to load verification record details."
+                : "রেকর্ডের বিস্তারিত লোড করা সম্ভব হয়নি।")
           );
         }
         return res.json();
       })
       .then((data) => {
         if (isMounted) {
-          setRecord(data.record || null);
+          const rec = data.verification || data.record;
+          if (rec) {
+            setRecord(rec);
+          } else {
+            throw new Error(
+              language === "en"
+                ? "Record details not found."
+                : "রেকর্ডের তথ্য পাওয়া যায়নি।"
+            );
+          }
         }
       })
       .catch((err) => {
@@ -93,7 +98,19 @@ export default function VerificationDetailModal({
     };
   }, [recordId, language]);
 
+  // Transform saved database record into complete, strongly-typed VerificationResult
+  const verificationResult = useMemo(() => {
+    if (!record) return null;
+    return transformSavedRecordToVerificationResult(record);
+  }, [record]);
+
   if (!recordId) return null;
+
+  const handlePrint = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!verificationResult || loading) return;
+    window.print();
+  };
 
   const formatDate = (isoStr: string) => {
     try {
@@ -118,11 +135,11 @@ export default function VerificationDetailModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+      className="report-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
-        {/* Modal Header */}
-        <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5 flex items-center justify-between">
+      <div className="report-modal-container relative w-full max-w-4xl max-h-[92vh] sm:max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        {/* Modal Header (Screen only) */}
+        <div className="no-print shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-3.5 flex items-center justify-between">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-bold text-slate-900">
@@ -139,261 +156,346 @@ export default function VerificationDetailModal({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-            aria-label={t.verificationHistory.modalClose}
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {record && verificationResult && (
+              <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("summary")}
+                  className={`px-2.5 py-1 rounded-md transition ${
+                    viewMode === "summary"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {language === "en" ? "Overview" : "সারসংক্ষেপ"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("report")}
+                  className={`px-2.5 py-1 rounded-md transition ${
+                    viewMode === "report"
+                      ? "bg-white text-slate-900 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {language === "en" ? "Full Report" : "পূর্ণাঙ্গ রিপোর্ট"}
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+              aria-label={t.verificationHistory.modalClose}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="py-12 text-center space-y-2">
-              <RefreshCw className="h-7 w-7 text-emerald-700 animate-spin mx-auto" />
-              <p className="text-xs font-semibold text-slate-600">
+            <div className="py-16 text-center space-y-3">
+              <RefreshCw className="h-8 w-8 text-emerald-700 animate-spin mx-auto" />
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">
                 {language === "en"
                   ? "Loading verification record..."
                   : "রেকর্ডের বিস্তারিত লোড হচ্ছে..."}
               </p>
             </div>
           ) : error ? (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-center space-y-2">
-              <AlertTriangle className="h-6 w-6 text-rose-600 mx-auto" />
-              <p className="text-xs font-semibold text-rose-800">{error}</p>
+            <div className="p-6 m-4 rounded-xl bg-rose-50 border border-rose-200 text-center space-y-2">
+              <AlertTriangle className="h-7 w-7 text-rose-600 mx-auto" />
+              <p className="text-xs sm:text-sm font-semibold text-rose-900">{error}</p>
             </div>
-          ) : record ? (
-            <div className="space-y-4">
-              {/* Category Status Banner */}
+          ) : record && verificationResult ? (
+            <>
+              {/* 1. Quick Summary Inspector View (Screen view) */}
               <div
-                className={`rounded-xl border p-3.5 ${
-                  record.verification?.category === "NO_DISCREPANCIES"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
-                    : record.verification?.category === "DIFFERENCES_REQUIRE_REVIEW"
-                    ? "border-rose-200 bg-rose-50 text-rose-950"
-                    : "border-amber-200 bg-amber-50 text-amber-950"
+                className={`no-print ${
+                  viewMode === "summary" ? "block p-4 sm:p-6 space-y-4" : "hidden"
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-bold text-xs ${
-                      record.verification?.category === "NO_DISCREPANCIES"
-                        ? "bg-emerald-600 text-white"
-                        : record.verification?.category === "DIFFERENCES_REQUIRE_REVIEW"
-                        ? "bg-rose-600 text-white"
-                        : "bg-amber-600 text-white"
-                    }`}
-                  >
-                    {record.verification?.category === "NO_DISCREPANCIES" ? "✓" : "!"}
-                  </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-bold">
-                      {record.verification?.categoryLabelBn || record.riskLevel}
-                    </h4>
-                    <p className="text-xs leading-relaxed opacity-90">
-                      {record.verification?.summaryBn || record.notes}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submitted Land Snapshot */}
-              {record.submitted && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
-                  <h4 className="text-2xs font-bold uppercase tracking-wide text-slate-600">
-                    {language === "en"
-                      ? "Submitted Land Identification"
-                      : "দাখিলকৃত ভূমির পরিচিতি"}
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                    <div>
-                      <span className="text-2xs text-slate-400 block">
-                        {language === "en" ? "Mouza" : "মৌজা"}
-                      </span>
-                      <span className="font-bold text-slate-800">
-                        {record.submitted.mouza || "—"}
-                      </span>
+                {/* Category Status Banner */}
+                <div
+                  className={`rounded-xl border p-3.5 ${
+                    record.verification?.category === "NO_DISCREPANCIES"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                      : record.verification?.category === "DIFFERENCES_REQUIRE_REVIEW"
+                      ? "border-rose-200 bg-rose-50 text-rose-950"
+                      : "border-amber-200 bg-amber-50 text-amber-950"
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-bold text-xs ${
+                        record.verification?.category === "NO_DISCREPANCIES"
+                          ? "bg-emerald-600 text-white"
+                          : record.verification?.category === "DIFFERENCES_REQUIRE_REVIEW"
+                          ? "bg-rose-600 text-white"
+                          : "bg-amber-600 text-white"
+                      }`}
+                    >
+                      {record.verification?.category === "NO_DISCREPANCIES" ? "✓" : "!"}
                     </div>
-                    <div>
-                      <span className="text-2xs text-slate-400 block">
-                        {language === "en" ? "Plot (Dag)" : "দাগ নম্বর"}
-                      </span>
-                      <span className="font-bold text-slate-800 bn-num">
-                        {record.submitted.dagNumber || "—"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-2xs text-slate-400 block">
-                        {language === "en" ? "Khatian" : "খতিয়ান"}
-                      </span>
-                      <span className="font-bold text-slate-800 bn-num">
-                        {record.submitted.khatianNumber || "—"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-2xs text-slate-400 block">
-                        {language === "en" ? "Area" : "জমির পরিমাণ"}
-                      </span>
-                      <span className="font-bold text-slate-800 bn-num">
-                        {record.submitted.recordedArea}{" "}
-                        {record.submitted.areaUnit || "শতক"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Field-by-Field Comparative Results */}
-              {record.verification?.fieldResults &&
-                record.verification.fieldResults.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-2xs font-bold uppercase tracking-wide text-slate-700">
-                      {language === "en"
-                        ? "Field-Level Comparison"
-                        : "ক্ষেত্রভিত্তিক তুলনামূলক নিরীক্ষা"}
-                    </h4>
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-2xs">
-                          <tr>
-                            <th className="px-3 py-2">
-                              {language === "en" ? "Field" : "ক্ষেত্র"}
-                            </th>
-                            <th className="px-3 py-2">
-                              {language === "en" ? "Reference" : "রেফারেন্স"}
-                            </th>
-                            <th className="px-3 py-2">
-                              {language === "en" ? "Submitted" : "দাখিলকৃত"}
-                            </th>
-                            <th className="px-3 py-2 text-center">
-                              {language === "en" ? "Status" : "অবস্থা"}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {record.verification.fieldResults.map((fr, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50">
-                              <td className="px-3 py-2 font-medium text-slate-900">
-                                {fr.fieldLabelBn || fr.fieldName}
-                              </td>
-                              <td className="px-3 py-2 text-slate-600 bn-num">
-                                {fr.referenceValue}
-                              </td>
-                              <td className="px-3 py-2 font-semibold text-slate-900 bn-num">
-                                {fr.submittedValue}
-                              </td>
-                              <td className="px-3 py-2 text-center">
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-2xs font-bold ${
-                                    fr.status === "MATCH"
-                                      ? "bg-emerald-100 text-emerald-800"
-                                      : fr.status === "MISMATCH"
-                                      ? "bg-rose-100 text-rose-800"
-                                      : "bg-amber-100 text-amber-800"
-                                  }`}
-                                >
-                                  {fr.status === "MATCH"
-                                    ? "✓ মিল"
-                                    : fr.status === "MISMATCH"
-                                    ? "✕ অমিল"
-                                    : "! অনুপস্থিত"}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-              {/* Identified Discrepancy Reasons (if any) */}
-              {record.verification?.discrepancyReasons &&
-                record.verification.discrepancyReasons.length > 0 && (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 space-y-1.5">
-                    <h4 className="text-2xs font-bold text-rose-950 uppercase tracking-wide">
-                      {language === "en"
-                        ? "Identified Discrepancy Details:"
-                        : "চিহ্নিত অমিল ও সতর্কবার্তা:"}
-                    </h4>
-                    <ul className="space-y-1 text-xs text-rose-900 pl-4 list-disc leading-relaxed">
-                      {record.verification.discrepancyReasons.map((r, i) => (
-                        <li key={i}>{r}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-              {/* OCR Metadata Snapshot (if available) */}
-              {record.extractedOcr &&
-                Object.keys(record.extractedOcr).length > 0 && (
-                  <div className="rounded-xl border border-slate-200 bg-emerald-50/30 p-3 space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <FileText className="h-3.5 w-3.5 text-emerald-700" />
-                      <h4 className="text-2xs font-bold text-emerald-950 uppercase tracking-wide">
-                        {language === "en"
-                          ? "Document OCR Metadata (AI Extracted)"
-                          : "দলিল OCR মেটাডেটা (AI উদ্ধারকৃত)"}
+                    <div className="space-y-0.5 min-w-0">
+                      <h4 className="text-sm font-bold">
+                        {record.verification?.categoryLabelBn || record.riskLevel}
                       </h4>
+                      <p className="text-xs leading-relaxed opacity-90">
+                        {record.verification?.summaryBn || record.notes}
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {Object.entries(record.extractedOcr).map(
-                        ([key, val]) =>
-                          val.value !== null && (
-                            <span
-                              key={key}
-                              className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-white border border-emerald-200 text-slate-800"
-                            >
-                              <span className="text-slate-400 text-2xs">
-                                {key}:
-                              </span>
-                              <span className="font-semibold">{val.value}</span>
-                              <span className="text-[10px] text-emerald-700">
-                                ({val.confidence})
-                              </span>
-                            </span>
-                          )
-                      )}
+                  </div>
+                </div>
+
+                {/* Submitted Land Snapshot */}
+                {record.submitted && (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2">
+                    <h4 className="text-2xs font-bold uppercase tracking-wide text-slate-600">
+                      {language === "en"
+                        ? "Submitted Land Identification"
+                        : "দাখিলকৃত ভূমির পরিচিতি"}
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      <div>
+                        <span className="text-2xs text-slate-400 block">
+                          {language === "en" ? "Mouza" : "মৌজা"}
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {record.submitted.mouza || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-2xs text-slate-400 block">
+                          {language === "en" ? "Plot (Dag)" : "দাগ নম্বর"}
+                        </span>
+                        <span className="font-bold text-slate-800 bn-num">
+                          {record.submitted.dagNumber || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-2xs text-slate-400 block">
+                          {language === "en" ? "Khatian" : "খতিয়ান"}
+                        </span>
+                        <span className="font-bold text-slate-800 bn-num">
+                          {record.submitted.khatianNumber || "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-2xs text-slate-400 block">
+                          {language === "en" ? "Area" : "জমির পরিমাণ"}
+                        </span>
+                        <span className="font-bold text-slate-800 bn-num">
+                          {record.submitted.recordedArea}{" "}
+                          {record.submitted.areaUnit || "শতক"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
 
-              {/* Legal Advisory */}
-              <div className="rounded-xl bg-slate-100/90 border border-slate-200 p-3 text-2xs sm:text-xs text-slate-700 leading-relaxed">
-                <span className="font-bold text-slate-900">
-                  {language === "en" ? "Civic Tech Advisory: " : "নাগরিক পরামর্শ: "}
-                </span>
-                <span>
-                  {record.verification?.advisoryBn ||
-                    (language === "en"
-                      ? "This verification was conducted against demonstration cadastral records. Always verify original title records at the Assistant Commissioner (Land) office."
-                      : "এটি কাল্পনিক ডেমো রেকর্ডের ভিত্তিতে তৈরি প্রাক-যাচাই। চূড়ান্ত লেনদেনের পূর্বে মূল দলিল ও খতিয়ান সহকারী কমিশনার (ভূমি) অফিসে অনুসন্ধান করুন।")}
-                </span>
+                {/* Field-by-Field Comparative Results */}
+                {record.verification?.fieldResults &&
+                  record.verification.fieldResults.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-2xs font-bold uppercase tracking-wide text-slate-700">
+                        {language === "en"
+                          ? "Field-Level Comparison"
+                          : "ক্ষেত্রভিত্তিক তুলনামূলক নিরীক্ষা"}
+                      </h4>
+                      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-2xs">
+                            <tr>
+                              <th className="px-3 py-2">
+                                {language === "en" ? "Field" : "ক্ষেত্র"}
+                              </th>
+                              <th className="px-3 py-2">
+                                {language === "en" ? "Reference" : "রেফারেন্স"}
+                              </th>
+                              <th className="px-3 py-2">
+                                {language === "en" ? "Submitted" : "দাখিলকৃত"}
+                              </th>
+                              <th className="px-3 py-2 text-center">
+                                {language === "en" ? "Status" : "অবস্থা"}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {record.verification.fieldResults.map((fr, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/50">
+                                <td className="px-3 py-2 font-medium text-slate-900">
+                                  {fr.fieldLabelBn || fr.fieldName}
+                                </td>
+                                <td className="px-3 py-2 text-slate-600 bn-num">
+                                  {fr.referenceValue}
+                                </td>
+                                <td className="px-3 py-2 font-semibold text-slate-900 bn-num">
+                                  {fr.submittedValue}
+                                </td>
+                                <td className="px-3 py-2 text-center">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-2xs font-bold ${
+                                      fr.status === "MATCH"
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : fr.status === "MISMATCH"
+                                        ? "bg-rose-100 text-rose-800"
+                                        : "bg-amber-100 text-amber-800"
+                                    }`}
+                                  >
+                                    {fr.status === "MATCH"
+                                      ? "✓ মিল"
+                                      : fr.status === "MISMATCH"
+                                      ? "✕ অমিল"
+                                      : "! অনুপস্থিত"}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Identified Discrepancy Reasons (if any) */}
+                {record.verification?.discrepancyReasons &&
+                  record.verification.discrepancyReasons.length > 0 && (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 space-y-1.5">
+                      <h4 className="text-2xs font-bold text-rose-950 uppercase tracking-wide">
+                        {language === "en"
+                          ? "Identified Discrepancy Details:"
+                          : "চিহ্নিত অমিল ও সতর্কবার্তা:"}
+                      </h4>
+                      <ul className="space-y-1 text-xs text-rose-900 pl-4 list-disc leading-relaxed">
+                        {record.verification.discrepancyReasons.map((r, i) => (
+                          <li key={i}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {/* OCR Metadata Snapshot (if available) */}
+                {record.extractedOcr &&
+                  Object.keys(record.extractedOcr).length > 0 && (
+                    <div className="rounded-xl border border-slate-200 bg-emerald-50/30 p-3 space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5 text-emerald-700" />
+                        <h4 className="text-2xs font-bold text-emerald-950 uppercase tracking-wide">
+                          {language === "en"
+                            ? "Document OCR Metadata (AI Extracted)"
+                            : "দলিল OCR মেটাডেটা (AI উদ্ধারকৃত)"}
+                        </h4>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {Object.entries(record.extractedOcr).map(
+                          ([key, val]) =>
+                            val.value !== null && (
+                              <span
+                                key={key}
+                                className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-white border border-emerald-200 text-slate-800"
+                              >
+                                <span className="text-slate-400 text-2xs">
+                                  {key}:
+                                </span>
+                                <span className="font-semibold">{val.value}</span>
+                                <span className="text-[10px] text-emerald-700">
+                                  ({val.confidence})
+                                </span>
+                              </span>
+                            )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Legal Advisory */}
+                <div className="rounded-xl bg-slate-100/90 border border-slate-200 p-3 text-2xs sm:text-xs text-slate-700 leading-relaxed">
+                  <span className="font-bold text-slate-900">
+                    {language === "en" ? "Civic Tech Advisory: " : "নাগরিক পরামর্শ: "}
+                  </span>
+                  <span>
+                    {record.verification?.advisoryBn ||
+                      (language === "en"
+                        ? "This verification was conducted against demonstration cadastral records. Always verify original title records at the Assistant Commissioner (Land) office."
+                        : "এটি কাল্পনিক ডেমো রেকর্ডের ভিত্তিতে তৈরি প্রাক-যাচাই। চূড়ান্ত লেনদেনের পূর্বে মূল দলিল ও খতিয়ান সহকারী কমিশনার (ভূমি) অফিসে অনুসন্ধান করুন।")}
+                  </span>
+                </div>
               </div>
-            </div>
+
+              {/* 2. Full Verification Report View (Visible when viewMode === "report", ALWAYS rendered and visible in print) */}
+              <div
+                className={
+                  viewMode === "report"
+                    ? "block p-3 sm:p-5 bg-slate-100/60"
+                    : "hidden print:block print:p-0 print:m-0 print:bg-white"
+                }
+              >
+                <VerificationReport
+                  result={verificationResult}
+                  onBack={() => setViewMode("summary")}
+                  onClose={onClose}
+                  createdAt={record.createdAt}
+                  reportReference={`LGBD-REP-2026-${record.id.slice(-4).toUpperCase()}`}
+                />
+              </div>
+            </>
           ) : null}
         </div>
 
-        {/* Modal Footer */}
-        <div className="shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-2.5 sm:px-6 sm:py-3 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition shadow-2xs cursor-pointer"
-          >
-            <Printer className="h-3.5 w-3.5 text-slate-500" />
-            <span>{t.verificationHistory.printReport}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition cursor-pointer"
-          >
-            {t.verificationHistory.modalClose}
-          </button>
+        {/* Modal Footer (Screen only) */}
+        <div className="no-print shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-2.5 sm:px-6 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            {record && verificationResult && (
+              viewMode === "summary" ? (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("report")}
+                  disabled={loading || !verificationResult}
+                  id="btn-view-full-history-report"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-950 bg-emerald-50 border border-emerald-300 rounded-lg hover:bg-emerald-100 transition shadow-2xs cursor-pointer disabled:opacity-50"
+                >
+                  <FileText className="h-3.5 w-3.5 text-emerald-700" />
+                  <span>
+                    {language === "en" ? "Full Audit Report" : "পূর্ণাঙ্গ অডিট রিপোর্ট"}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setViewMode("summary")}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition shadow-2xs cursor-pointer"
+                >
+                  <span>
+                    {language === "en" ? "← Quick Summary" : "← সারসংক্ষেপ"}
+                  </span>
+                </button>
+              )
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={handlePrint}
+              disabled={loading || !verificationResult}
+              id="btn-print-verification-report-footer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-800 border border-emerald-900 rounded-lg hover:bg-emerald-900 transition shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              <Printer className="h-3.5 w-3.5 text-emerald-200" />
+              <span>{t.verificationHistory.printReport}</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            >
+              {t.verificationHistory.modalClose}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -129,7 +129,12 @@ export default function PersonalDashboardView({
   ] as const;
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-3 py-5 sm:px-6 sm:py-7 lg:px-8 space-y-7 sm:space-y-8">
+    <>
+      <div
+        className={`dashboard-page-content mx-auto w-full max-w-5xl px-3 py-5 sm:px-6 sm:py-7 lg:px-8 space-y-7 sm:space-y-8 ${
+          selectedRecordId ? "print:hidden" : ""
+        }`}
+      >
       {/* Welcome */}
       <header className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -477,14 +482,15 @@ export default function PersonalDashboardView({
           {pd.tipNote}
         </p>
       </aside>
-
-      {selectedRecordId && (
-        <VerificationDetailModal
-          recordId={selectedRecordId}
-          onClose={() => setSelectedRecordId(null)}
-        />
-      )}
     </div>
+
+    {selectedRecordId && (
+      <VerificationDetailModal
+        recordId={selectedRecordId}
+        onClose={() => setSelectedRecordId(null)}
+      />
+    )}
+  </>
   );
 }
 

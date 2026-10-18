@@ -105,13 +105,13 @@ td {
     overflow: visible !important;
   }
 
-  /* 2. Hide entire dashboard website, navigation, footer, and screen controls */
+  /* 2. Hide website navigation, sidebars, headers, footer, and screen controls */
   #dashboard-view-content,
   .dashboard-screen-content,
   header,
   footer,
   nav,
-  main,
+  aside,
   .no-print,
   #map-section,
   #records-section,
@@ -120,6 +120,24 @@ td {
   #summary-cards,
   #verification-cta {
     display: none !important;
+  }
+
+  /* When printing an active verification report, suppress background page content */
+  body:has(.verification-report-print-root) .dashboard-page-content,
+  body:has(.report-modal-overlay) .dashboard-page-content {
+    display: none !important;
+  }
+
+  /* Reset layout constraints on main and container elements in print */
+  main {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    display: block !important;
   }
 
   /* 3. Neutralize modal overlay: remove backdrop blur, dark shade, fixed positioning */

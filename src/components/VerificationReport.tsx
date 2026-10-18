@@ -15,24 +15,31 @@ interface VerificationReportProps {
   result: VerificationResult;
   onBack: () => void;
   onClose?: () => void;
+  createdAt?: string | Date;
+  reportReference?: string;
 }
 
 export default function VerificationReport({
   result,
   onBack,
   onClose,
+  createdAt,
+  reportReference,
 }: VerificationReportProps) {
   // Generate session reference deterministically for this parcel submission
   const reportRef = useMemo(
     () =>
+      reportReference ||
       generateReportReference(
         `${result.referenceParcel.id}-${result.submitted.dagNumber}-${result.submitted.khatianNumber}`
       ),
-    [result]
+    [result, reportReference]
   );
 
   // Generation timestamp
-  const [reportDate] = useState(() => formatReportDateTime(new Date()));
+  const [reportDate] = useState(() =>
+    formatReportDateTime(createdAt ? new Date(createdAt) : new Date())
+  );
 
   // Deterministic explainable risk analysis of the reference parcel
   const riskAnalysis = useMemo(

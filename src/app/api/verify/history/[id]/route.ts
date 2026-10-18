@@ -69,21 +69,24 @@ export async function GET(
       parsedData = null;
     }
 
+    const verificationData = {
+      id: record.id,
+      createdAt: record.createdAt,
+      status: record.status,
+      riskLevel: record.riskLevel,
+      riskScore: record.riskScore,
+      documentFilename: record.documentFilename,
+      notes: record.notes,
+      submitted: parsedData?.submitted || null,
+      verification: parsedData?.verification || null,
+      extractedOcr: parsedData?.extractedOcr || null,
+      riskSummary: parsedData?.riskSummary || null,
+    };
+
     return NextResponse.json(
       {
-        verification: {
-          id: record.id,
-          createdAt: record.createdAt,
-          status: record.status,
-          riskLevel: record.riskLevel,
-          riskScore: record.riskScore,
-          documentFilename: record.documentFilename,
-          notes: record.notes,
-          submitted: parsedData?.submitted || null,
-          verification: parsedData?.verification || null,
-          extractedOcr: parsedData?.extractedOcr || null,
-          riskSummary: parsedData?.riskSummary || null,
-        },
+        verification: verificationData,
+        record: verificationData,
       },
       { status: 200 }
     );

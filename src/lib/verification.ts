@@ -6,7 +6,7 @@
  * Pure comparison logic: no database writes, no AI hallucinations, no invented risk scores.
  */
 
-import { DemoLandParcel } from "@/data/demo-data";
+import { DemoLandParcel, ParcelRiskLevel, SYNTHETIC_DEMO_PARCELS } from "@/data/demo-data";
 import { toBengaliNumerals } from "./formatters";
 
 export type FieldComparisonStatus = "MATCH" | "MISMATCH" | "MISSING";
@@ -508,3 +508,231 @@ export function compareLandDocument(
     advisoryBn,
   };
 }
+
+export interface SavedVerificationRecord {
+  id: string;
+  createdAt?: string | Date;
+  status?: string;
+  riskLevel?: string;
+  riskScore?: number | null;
+  documentFilename?: string | null;
+  notes?: string | null;
+  submitted?: Partial<VerificationSubmission> | Record<string, string> | null;
+  verification?: {
+    category?: OverallResultCategory | string;
+    categoryLabelBn?: string;
+    summaryBn?: string;
+    advisoryBn?: string;
+    matchCount?: number;
+    mismatchCount?: number;
+    missingCount?: number;
+    discrepancyReasons?: string[];
+    fieldResults?: FieldComparisonResult[];
+  } | null;
+  extractedOcr?: Record<string, { value: string | null; confidence: string }> | null;
+  riskSummary?: Record<string, unknown> | null;
+}
+
+/**
+ * Transforms a saved verification database record into a complete, strongly-typed VerificationResult.
+ * Handles both newly created records and older records with missing fields, synthesized fallbacks,
+ * or custom parcel identifiers.
+ */
+export function transformSavedRecordToVerificationResult(
+  record: SavedVerificationRecord
+): VerificationResult {
+  const rawSub = record.submitted || {};
+  const submitted: VerificationSubmission = {
+    parcelId: String(rawSub.parcelId || ""),
+    ownerName: String(rawSub.ownerName || ""),
+    district: String(rawSub.district || ""),
+    upazila: String(rawSub.upazila || ""),
+    mouza: String(rawSub.mouza || ""),
+    khatianNumber: String(rawSub.khatianNumber || ""),
+    khatianType: String(rawSub.khatianType || "বিএস (BS)"),
+    dagNumber: String(rawSub.dagNumber || ""),
+    recordedArea: String(rawSub.recordedArea || ""),
+    areaUnit: String(rawSub.areaUnit || "শতক"),
+  };
+
+  const rawVer = record.verification;
+
+  // 1. Resolve or reconstruct reference parcel
+  let matchedParcel: DemoLandParcel | undefined;
+  if (submitted.parcelId) {
+    matchedParcel = SYNTHETIC_DEMO_PARCELS.find((p) => p.id === submitted.parcelId);
+  }
+  if (!matchedParcel && submitted.dagNumber && submitted.mouza) {
+    matchedParcel = SYNTHETIC_DEMO_PARCELS.find(
+      (p) => p.dagNumber === submitted.dagNumber && p.mouza === submitted.mouza
+    );
+  }
+  if (!matchedParcel && submitted.khatianNumber) {
+    matchedParcel = SYNTHETIC_DEMO_PARCELS.find(
+      (p) => p.khatianNumber === submitted.khatianNumber
+    );
+  }
+  if (!matchedParcel && submitted.ownerName) {
+    matchedParcel = SYNTHETIC_DEMO_PARCELS.find(
+      (p) =>
+        normalizeText(p.ownership?.ownerName) === normalizeText(submitted.ownerName) ||
+        normalizeText(p.ownership?.ownerName).includes(normalizeText(submitted.ownerName))
+    );
+  }
+
+  // Extract reference field values from stored fieldResults if available
+  const storedFields = rawVer?.fieldResults || [];
+  const refOwner = storedFields.find((f) => f.fieldName === "ownerName")?.referenceValue;
+  const refArea = storedFields.find((f) => f.fieldName === "recordedArea")?.referenceValue;
+  const refDag = storedFields.find((f) => f.fieldName === "dagNumber")?.referenceValue;
+  const refKhatian = storedFields.find((f) => f.fieldName === "khatianNumber")?.referenceValue;
+  const refMouza = storedFields.find((f) => f.fieldName === "mouza")?.referenceValue;
+  const refDistrict = storedFields.find((f) => f.fieldName === "district")?.referenceValue;
+  const refUpazila = storedFields.find((f) => f.fieldName === "upazila")?.referenceValue;
+  const refKhatianType = storedFields.find((f) => f.fieldName === "khatianType")?.referenceValue;
+
+  const referenceParcel: DemoLandParcel = matchedParcel
+    ? {
+        ...matchedParcel,
+        historyEvents: matchedParcel.historyEvents || [],
+        litigationStatus: matchedParcel.litigationStatus || { hasActiveCase: false },
+        encumbranceStatus: matchedParcel.encumbranceStatus || { isEncumbered: false },
+        riskFlags: matchedParcel.riskFlags || [],
+        ownership: {
+          id: matchedParcel.ownership?.id || `own-${matchedParcel.id}`,
+          ownerName: matchedParcel.ownership?.ownerName || "নমুনা স্বত্বাধিকারী (কৃত্রিম ডেমো)",
+          ownerNameEn: matchedParcel.ownership?.ownerNameEn || "Sample Owner (Synthetic Demo)",
+          deedNumber: matchedParcel.ownership?.deedNumber,
+          recordedArea: matchedParcel.ownership?.recordedArea ?? matchedParcel.recordedArea,
+          areaUnit: matchedParcel.ownership?.areaUnit || matchedParcel.areaUnit || "শতক",
+          status: matchedParcel.ownership?.status || "ACTIVE",
+          statusLabelBn: matchedParcel.ownership?.statusLabelBn || "সক্রিয় স্বত্ব",
+          isSynthetic: true,
+        },
+      }
+    : {
+        id: submitted.parcelId || `saved-${record.id}`,
+        district: refDistrict || submitted.district || "ঢাকা",
+        districtEn: "Dhaka",
+        upazila: refUpazila || submitted.upazila || "সাভার",
+        upazilaEn: "Savar",
+        mouza: refMouza || submitted.mouza || "নমুনা মৌজা",
+        mouzaEn: "Sample Mouza",
+        jlNumber: "১",
+        khatianNumber: refKhatian || submitted.khatianNumber || "১",
+        dagNumber: refDag || submitted.dagNumber || "১",
+        khatianType: refKhatianType || submitted.khatianType || "বিএস (BS)",
+        recordedArea: parseNormalizedNumber(refArea || submitted.recordedArea) || 10,
+        areaUnit: submitted.areaUnit || "শতক",
+        areaUnitEn: "Decimal",
+        riskLevel: (record.riskLevel?.toUpperCase() as ParcelRiskLevel) || "LOW",
+        riskScore: typeof record.riskScore === "number" ? record.riskScore : 15,
+        status: "ACTIVE",
+        statusLabelBn: "নিয়মিত রেকর্ড",
+        statusLabelEn: "Regular Record",
+        ownership: {
+          id: `own-${record.id}`,
+          ownerName: refOwner || submitted.ownerName || "নমুনা স্বত্বাধিকারী (কৃত্রিম ডেমো)",
+          ownerNameEn: "Sample Owner (Synthetic Demo)",
+          recordedArea: parseNormalizedNumber(refArea || submitted.recordedArea) || 10,
+          areaUnit: submitted.areaUnit || "শতক",
+          status: "ACTIVE",
+          statusLabelBn: "সক্রিয় স্বত্ব",
+          isSynthetic: true,
+        },
+        riskFlags: [],
+        notesBn: record.notes || rawVer?.summaryBn || "",
+        notesEn: "",
+        historyEvents: [],
+        litigationStatus: { hasActiveCase: false },
+        encumbranceStatus: { isEncumbered: false },
+      };
+
+  // Ensure submitted fields have fallback values from reference parcel if missing
+  if (!submitted.district) submitted.district = referenceParcel.district;
+  if (!submitted.upazila) submitted.upazila = referenceParcel.upazila;
+  if (!submitted.mouza) submitted.mouza = referenceParcel.mouza;
+  if (!submitted.dagNumber) submitted.dagNumber = referenceParcel.dagNumber;
+  if (!submitted.khatianNumber) submitted.khatianNumber = referenceParcel.khatianNumber;
+  if (!submitted.recordedArea) submitted.recordedArea = String(referenceParcel.recordedArea);
+
+  // 2. Field results
+  let fieldResults: FieldComparisonResult[];
+  if (storedFields.length > 0) {
+    fieldResults = storedFields;
+  } else {
+    // Regenerate field comparisons if legacy record lacked them
+    const freshComparison = compareLandDocument(submitted, referenceParcel);
+    fieldResults = freshComparison.fieldResults;
+  }
+
+  // 3. Category & Counts
+  let category: OverallResultCategory;
+  if (
+    rawVer?.category === "NO_DISCREPANCIES" ||
+    rawVer?.category === "DIFFERENCES_REQUIRE_REVIEW" ||
+    rawVer?.category === "INSUFFICIENT_INFO"
+  ) {
+    category = rawVer.category;
+  } else {
+    const risk = record.riskLevel?.toUpperCase();
+    if (risk === "LOW") category = "NO_DISCREPANCIES";
+    else if (risk === "HIGH") category = "DIFFERENCES_REQUIRE_REVIEW";
+    else category = "INSUFFICIENT_INFO";
+  }
+
+  const matchCount =
+    typeof rawVer?.matchCount === "number" && rawVer.matchCount >= 0
+      ? rawVer.matchCount
+      : fieldResults.filter((f) => f.status === "MATCH").length;
+
+  const mismatchCount =
+    typeof rawVer?.mismatchCount === "number" && rawVer.mismatchCount >= 0
+      ? rawVer.mismatchCount
+      : fieldResults.filter((f) => f.status === "MISMATCH").length;
+
+  const missingCount =
+    typeof rawVer?.missingCount === "number" && rawVer.missingCount >= 0
+      ? rawVer.missingCount
+      : fieldResults.filter((f) => f.status === "MISSING").length;
+
+  const categoryLabelBn =
+    rawVer?.categoryLabelBn ||
+    (category === "NO_DISCREPANCIES"
+      ? "চিহ্নিত ক্ষেত্রগুলোতে কোনো অমিল পাওয়া যায়নি"
+      : category === "DIFFERENCES_REQUIRE_REVIEW"
+      ? "পার্থক্যগুলো পুনঃনিরীক্ষণ প্রয়োজন"
+      : "তুলনার জন্য তথ্য অপর্যাপ্ত");
+
+  const summaryBn =
+    rawVer?.summaryBn ||
+    record.notes ||
+    (category === "NO_DISCREPANCIES"
+      ? `যাচাইকৃত সকল ${toBengaliNumerals(matchCount)}টি প্রধান তথ্যের সাথে নির্বাচিত রেফারেন্স রেকর্ডের হুবহু সামঞ্জস্য পাওয়া গেছে।`
+      : `দাখিলকৃত দলিলের তথ্যের সাথে রেফারেন্স রেকর্ডের ${toBengaliNumerals(mismatchCount)}টি ক্ষেত্রে স্পষ্ট পার্থক্য শনাক্ত হয়েছে।`);
+
+  const advisoryBn =
+    rawVer?.advisoryBn ||
+    "পরামর্শ: এটি শুধুমাত্র কৃত্রিম ডেমো ডেটার ওপর ভিত্তি করে একটি প্রাথমিক তুলনামূলক ফলাফল। কোনো অমিলই প্রতারণার নিশ্চিত প্রমাণ নয়, তেমনি তথ্যের মিলও স্বত্বের আইনি নিশ্চয়তা প্রদান করে না। জমি ক্রয়ের যেকোনো সিদ্ধান্ত নেওয়ার আগে অবশ্যই সংশ্লিষ্ট উপজেলা ভূমি অফিস (এসি ল্যান্ড), সাব-রেজিস্ট্রি অফিস এবং অভিজ্ঞ আইনজীবীর মাধ্যমে মূল নথিপত্র সরেজমিনে যাচাই করুন।";
+
+  const discrepancyReasons = Array.isArray(rawVer?.discrepancyReasons) && rawVer.discrepancyReasons.length > 0
+    ? rawVer.discrepancyReasons
+    : fieldResults
+        .filter((f) => f.status === "MISMATCH")
+        .map((f) => `${f.fieldLabelBn}: দাখিলকৃত "${f.submittedValue}" কিন্তু রেফারেন্স রেকর্ডে "${f.referenceValue}"`);
+
+  return {
+    category,
+    categoryLabelBn,
+    summaryBn,
+    referenceParcel,
+    submitted,
+    fieldResults,
+    mismatchCount,
+    matchCount,
+    missingCount,
+    discrepancyReasons,
+    advisoryBn,
+  };
+}
+
