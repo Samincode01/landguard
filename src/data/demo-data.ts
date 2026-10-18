@@ -86,9 +86,18 @@ export interface DemoLandParcel {
   statusLabelEn: string;
   ownership: DemoOwnershipRecord;
   riskFlags: DemoRiskFlag[];
+  /** Approximate sample point for map display (WGS84 lat/lng). Not a survey corner. */
   approxLocation?: {
     lat: number;
     lng: number;
+  };
+  /**
+   * Optional authentic cadastral boundary (GeoJSON Polygon/MultiPolygon, [lng, lat]).
+   * Only set when authorized survey/GeoJSON data is available — never invent this.
+   */
+  boundaryGeoJSON?: {
+    type: "Polygon" | "MultiPolygon";
+    coordinates: number[][][] | number[][][][];
   };
   notesBn: string;
   notesEn: string;

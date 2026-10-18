@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LandingPageView from "@/components/LandingPageView";
 
 export const metadata: Metadata = {
-  title: "ল্যান্ডগার্ড বিডি (LandGuard BD) — জমি ও খতিয়ান প্রাক-যাচাই প্ল্যাটফর্ম",
+  title: "ল্যান্ডগার্ড বিডি — জমি কেনার আগে দলিল যাচাই",
   description:
-    "জমি ক্রয়ের পূর্বে দলিলের ধারাবাহিকতা, খতিয়ানের হিস্যা এবং ১ নং খাস বাফারের প্রাথমিক যাচাইকরণ নাগরিক প্ল্যাটফর্ম।",
+    "জমি কেনার আগে খতিয়ান, বায়া দলিল ও ঝুঁকির লক্ষণ ঘরে বসে প্রাথমিকভাবে যাচাই করুন। LandGuard BD — civic land document pre-check for Bangladesh.",
 };
 
 export default function HomePage() {

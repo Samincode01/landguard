@@ -186,7 +186,7 @@ export default function DashboardSidebar() {
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
           {!collapsed && (
             <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              {language === "bn" ? "মেনু ও নেভিগেশন" : "Workspace Menu"}
+              {language === "bn" ? "মেনু" : "Menu"}
             </div>
           )}
 
@@ -323,8 +323,8 @@ export default function DashboardSidebar() {
     <>
       {/* ── DESKTOP SIDEBAR (Visible lg and up, fills reliable 100dvh) ── */}
       <aside
-        className={`hidden lg:flex flex-col h-[100dvh] max-h-[100dvh] border-r border-slate-200/90 bg-white transition-[width] duration-200 ease-in-out shrink-0 sticky top-0 z-20 overflow-hidden ${
-          isSidebarCollapsed ? "w-20" : "w-64"
+        className={`hidden lg:flex flex-col h-[100dvh] max-h-[100dvh] border-r border-slate-200/90 bg-white/95 transition-[width] duration-200 ease-in-out shrink-0 sticky top-0 z-20 overflow-hidden ${
+          isSidebarCollapsed ? "w-[4.5rem]" : "w-60"
         }`}
         aria-label="Desktop Navigation Sidebar"
       >

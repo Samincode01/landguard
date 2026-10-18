@@ -41,6 +41,7 @@ export interface TranslationDictionary {
   // Landing Page
   landing: {
     hackathonTrack: string;
+    brandHero: string;
     heroTitleStart: string;
     heroTitleHighlight: string;
     heroSubtitle: string;
@@ -61,10 +62,29 @@ export interface TranslationDictionary {
     slide3Tag: string;
     heroDisclaimerNote: string;
 
+    // Hero verification preview (illustrative UI)
+    previewLabel: string;
+    previewDocTitle: string;
+    previewOwnerLabel: string;
+    previewOwnerValue: string;
+    previewMouzaLabel: string;
+    previewMouzaValue: string;
+    previewKhatianLabel: string;
+    previewKhatianValue: string;
+    previewMatch: string;
+    previewCaution: string;
+    previewFlagShare: string;
+    previewFlagChain: string;
+    previewSampleNote: string;
+
+    // Benefits strip
+    benefitsTitle: string;
+
     // 3-step workflow
     workflowBadge: string;
     workflowTitle: string;
     workflowSubtitle: string;
+    stepLabel: string;
     step1Num: string;
     step1Title: string;
     step1Desc: string;
@@ -75,7 +95,7 @@ export interface TranslationDictionary {
     step3Title: string;
     step3Desc: string;
 
-    // 6 features
+    // Features
     featuresBadge: string;
     featuresTitle: string;
     featuresSubtitle: string;
@@ -148,6 +168,23 @@ export interface TranslationDictionary {
     specsArea: string;
     specsOwner: string;
     syntheticCoordsNote: string;
+    legendClean: string;
+    legendReview: string;
+    legendInsufficient: string;
+    jumpLabel: string;
+    showAll: string;
+    fitToParcel: string;
+    fitToResults: string;
+    layerStreets: string;
+    layerSatellite: string;
+    approxPointLabel: string;
+    popupApproxNote: string;
+    noCoordinates: string;
+    coordsLabel: string;
+    parcelIdLabel: string;
+    legendIllustrativeBoundary: string;
+    legendAuthenticBoundary: string;
+    illustrativeBoundaryDisclaimer: string;
   };
 
   // Timeline History & Explainable Risk Section
@@ -371,6 +408,54 @@ export interface TranslationDictionary {
     logout: string;
   };
 
+  // Personal /dashboard overview
+  personalDashboard: {
+    welcomeBack: string;
+    subtitle: string;
+    heroTitle: string;
+    heroDesc: string;
+    startCheckBtn: string;
+    quickActionsTitle: string;
+    actionVerify: string;
+    actionVerifyDesc: string;
+    actionExplore: string;
+    actionExploreDesc: string;
+    actionHistory: string;
+    actionHistoryDesc: string;
+    actionChat: string;
+    actionChatDesc: string;
+    activityTitle: string;
+    activityHint: string;
+    totalLabel: string;
+    cleanLabel: string;
+    reviewLabel: string;
+    partialLabel: string;
+    recentTitle: string;
+    recentSubtitle: string;
+    viewAllHistory: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    emptyCta: string;
+    step1Title: string;
+    step1Desc: string;
+    step2Title: string;
+    step2Desc: string;
+    step3Title: string;
+    step3Desc: string;
+    unspecifiedOwner: string;
+    dagLabel: string;
+    khatianLabel: string;
+    mismatchFields: string;
+    matchFields: string;
+    tipTitle: string;
+    tip1: string;
+    tip2: string;
+    tip3: string;
+    tip4: string;
+    tipNote: string;
+    navbarWorkspace: string;
+  };
+
   // Explore Land Records
   explore: {
     title: string;
@@ -425,18 +510,19 @@ export const translations: Record<Language, TranslationDictionary> = {
       fullNotice: "ল্যান্ডগার্ড বিডি জমি ক্রেতাদের সচেতন করার উদ্দেশ্যে তৈরি একটি নাগরিক প্রযুক্তি প্রোটোটাইপ। এখানে দেখানো রেকর্ডগুলো সম্পূর্ণ কাল্পনিক — কোনো প্রকৃত ভূমি মালিক, জমি বা সরকারি রেকর্ডের সাথে এর কোনো সম্পর্ক নেই। এটি কোনো সরকারি সনদ বা আইনি পরামর্শ নয়।",
     },
     landing: {
-      hackathonTrack: "ল্যান্ডটেক ইনোভেশন হ্যাকাথন ২০২৬ • ট্র্যাক P5: কেনার আগেই যাচাই",
-      heroTitleStart: "জমি কেনার আগে দলিল, খতিয়ান ও সম্ভাব্য ঝুঁকি",
-      heroTitleHighlight: "প্রাক-যাচাই",
-      heroSubtitle: "বায়া দলিলের পরম্পরা, খতিয়ানের হিস্যা, ১ নং খাস বাফার এবং দ্বৈত হস্তান্তরের অসঙ্গতি কম্পিউটার-ভিত্তিক তুলনার মাধ্যমে চিহ্নিত করার নাগরিক প্ল্যাটফর্ম।",
+      hackathonTrack: "ল্যান্ডটেক হ্যাকাথন ২০২৬ · ট্র্যাক P5",
+      brandHero: "ল্যান্ডগার্ড বিডি",
+      heroTitleStart: "জমি কেনার আগে",
+      heroTitleHighlight: "দলিল যাচাই করুন",
+      heroSubtitle: "খতিয়ান, বায়া দলিল ও ঝুঁকির লক্ষণ ঘরে বসে প্রাথমিকভাবে পরীক্ষা করুন—ভূমি অফিসে যাওয়ার আগে।",
       startVerificationBtn: "যাচাই শুরু করুন",
       loginBtn: "লগইন",
-      viewDemoRecordsBtn: "নমুনা ডেমো রেকর্ড দেখুন",
-      checkChainOfTitle: "১২-২৫ বছরের বায়া দলিলের ধারাবাহিকতা",
-      checkKhatianShare: "খতিয়ানের হিস্যা ও আয়তনের অমিল",
-      checkKhasWarning: "১ নং খাস ও অর্পিত সম্পত্তি সংকেত",
-      carouselPrev: "পূর্ববর্তী ছবি",
-      carouselNext: "পরবর্তী ছবি",
+      viewDemoRecordsBtn: "কীভাবে কাজ করে",
+      checkChainOfTitle: "বায়া দলিলের ধারাবাহিকতা",
+      checkKhatianShare: "খতিয়ানের হিস্যা ও পরিমাণ",
+      checkKhasWarning: "খাস জমি ও সতর্কতা সংকেত",
+      carouselPrev: "পূর্ববর্তী",
+      carouselNext: "পরবর্তী",
       carouselSlide: "স্লাইড",
       slide1Title: "বাংলাদেশের কৃষিজমি ও নদীবিধৌত ভূখণ্ড",
       slide1Tag: "কৃষি ও প্রাকৃতিক মৌজা",
@@ -444,38 +530,53 @@ export const translations: Record<Language, TranslationDictionary> = {
       slide2Tag: "মৌজা নকশা ও দাগ সীমানা",
       slide3Title: "ভূমি দলিল ও বায়া খতিয়ান প্রাক-যাচাই নিরীক্ষা",
       slide3Tag: "দলিল ও স্বত্ব রেকর্ড",
-      heroDisclaimerNote: "ল্যান্ডগার্ড বিডি কোনো সরকারি স্বত্ব সনদ প্রদান করে না। এটি নাগরিক সচেতনতা ও প্রাথমিক ঝুঁকি শনাক্তকরণের জন্য প্রস্তুতকৃত।",
-      workflowBadge: "সহজ ৩টি ধাপ",
-      workflowTitle: "জমি ক্রয়ের আগে কীভাবে তথ্য যাচাই করবেন?",
-      workflowSubtitle: "ভূমি অফিসে সশরীরে চূড়ান্ত অনুসন্ধানে যাওয়ার আগে ঘরে বসেই দলিলের মূল তথ্যাদি প্রাক-যাচাই করে নিন।",
+      heroDisclaimerNote: "এটি সরকারি স্বত্ব সনদ নয়—প্রাথমিক সচেতনতার জন্য। চূড়ান্ত সিদ্ধান্তের আগে ভূমি অফিসে মূল রেকর্ড যাচাই করুন।",
+      previewLabel: "নমুনা যাচাই ফলাফল",
+      previewDocTitle: "দলিল প্রাক-যাচাই",
+      previewOwnerLabel: "মালিক",
+      previewOwnerValue: "করিম উদ্দিন",
+      previewMouzaLabel: "মৌজা",
+      previewMouzaValue: "সাভার",
+      previewKhatianLabel: "খতিয়ান",
+      previewKhatianValue: "১২৩৪ / আরএস",
+      previewMatch: "মিল পাওয়া গেছে",
+      previewCaution: "পর্যালোচনা প্রয়োজন",
+      previewFlagShare: "হিস্যায় অমিল",
+      previewFlagChain: "বায়া ধারা পরীক্ষিত",
+      previewSampleNote: "উদাহরণমাত্র — প্রকৃত যাচাইয়ের জন্য অ্যাকাউন্ট খুলুন",
+      benefitsTitle: "যাচাইয়ের আগে যা দেখা হয়",
+      workflowBadge: "৩টি ধাপ",
+      workflowTitle: "কীভাবে কাজ করে",
+      workflowSubtitle: "তথ্য দিন, ফলাফল দেখুন, প্রয়োজনীয় পরবর্তী ধাপ জানুন।",
+      stepLabel: "ধাপ",
       step1Num: "১",
-      step1Title: "দলিল ও খতিয়ানের তথ্য প্রদান",
-      step1Desc: "বিক্রেতার নাম, মৌজা, খতিয়ান নম্বর, জরিপের ধরন (CS, SA, RS, BS), দাগ নম্বর এবং প্রস্তাবিত জমির পরিমাণ দাখিল করুন।",
+      step1Title: "তথ্য দিন",
+      step1Desc: "বিক্রেতার নাম, মৌজা, খতিয়ান, দাগ ও জমির পরিমাণ লিখুন।",
       step2Num: "২",
-      step2Title: "স্বয়ংক্রিয় প্রাক-তুলনা ও ঝুঁকি নিরীক্ষা",
-      step2Desc: "রেফারেন্স রেকর্ডের সাথে ক্ষেত্রভিত্তিক অমিল, পরিমাণের অসঙ্গতি বা একাধিক হস্তান্তরের সংকেত স্বয়ংক্রিয়ভাবে উদঘাটন করা হয়।",
+      step2Title: "তুলনা ও ঝুঁকি দেখুন",
+      step2Desc: "রেকর্ডের অমিল, হিস্যার গরমিল বা দ্বৈত হস্তান্তরের সংকেত চিহ্নিত হয়।",
       step3Num: "৩",
-      step3Title: "অডিট রিপোর্ট ও চেকলিস্ট সংগ্রহ",
-      step3Desc: "ইউনিক রেফারেন্স কোড ও সরকারি অফিসে সশরীরে অনুসন্ধানের প্রয়োজনীয় সতর্কতামূলক চেকলিস্টসহ PDF রিপোর্ট প্রিন্ট করুন।",
-      featuresBadge: "মূল সুবিধাসমূহ",
-      featuresTitle: "ভূমি সুরক্ষায় ল্যান্ডগার্ড বিডির প্রধান ফিচারসমূহ",
-      featuresSubtitle: "নাগরিক সচেতনতা বাড়াতে এবং জমি ক্রয়ে সম্ভাব্য প্রতারণা এড়াতে তৈরি সমন্বিত টুলস।",
-      feat1Title: "দলিল প্রাক-যাচাই ইঞ্জিন",
-      feat1Desc: "মালিকের নাম, মৌজা, খতিয়ান ও দাগ নম্বরের নিখুঁত ক্ষেত্রভিত্তিক তুলনা। তথ্যের সামান্যতম অমিলও আলাদাভাবে হাইলাইট করা হয়।",
-      feat2Title: "ব্যাখ্যামূলক ঝুঁকি বিশ্লেষণ",
-      feat2Desc: "মনগড়া রিস্ক স্কোর নয়; ৪-স্তরীয় যৌক্তিক ব্যাখ্যা—কী অসঙ্গতি পাওয়া গেছে, কোন রেকর্ড থেকে সূত্রপাত এবং পরবর্তী করণীয় কী।",
-      feat3Title: "ইন্টারেক্টিভ ক্যাডাস্ট্রাল মানচিত্র",
-      feat3Desc: "বাংলাদেশের ভৌগোলিক স্থানাঙ্কে প্লট ও মৌজা নকশার কাল্পনিক সীমানা ভিজ্যুয়ালাইজেশন এবং এক ক্লিকেই ঝুঁকি ফলাফল পর্যবেক্ষণ।",
-      feat4Title: "প্রিন্টযোগ্য অডিট রিপোর্ট ও PDF",
-      feat4Desc: "ব্রাউজারের প্রিন্ট অপশন বা Save as PDF ব্যবহারের মাধ্যমে সম্পূর্ণ আইসোলেটেড, পেশাদার অডিট ডকুমেন্ট সংগ্রহ।",
-      feat5Title: "ভূমিসাথী — এআই ভূমি সহকারী",
-      feat5Desc: "খতিয়ান, দাগ, মৌজা, নামজারি, বায়া দলিল ও সরকারি পোর্টাল সংক্রান্ত সাধারণ জিজ্ঞাসার তাৎক্ষণিক তথ্যবহুল উত্তর পেতে ভূমিসাথীর সাথে কথোপকথন করুন।",
-      feat6Title: "গোপনীয়তা ও ডেটা নিরাপত্তা",
-      feat6Desc: "ব্যবহারকারীর দাখিলকৃত দলিল সার্ভারে স্থায়ীভাবে জমা হয় না। ইন-মেমোরি প্রসেসিংয়ের মাধ্যমে সর্বোচ্চ ডেটা সুরক্ষা নিশ্চিত।",
-      calloutTitle: "কাল্পনিক ডেমো রেকর্ডের সাথে স্বচক্ষে যাচাই পরীক্ষা করুন",
-      calloutDesc: "আমাদের পরীক্ষামূলক ড্যাশবোর্ডে সাভার, শ্রীপুর, রূপগঞ্জ, সীতাকুণ্ড, কেরানীগঞ্জ ও বরিশাল সদরের ৬টি সিন্থেটিক প্লটের পূর্ণাঙ্গ তথ্য রয়েছে।",
-      enterDashboardBtn: "ড্যাশবোর্ডে প্রবেশ করুন",
-      askAssistantBtn: "ভূমিসাথীকে প্রশ্ন করুন",
+      step3Title: "রিপোর্ট নিন",
+      step3Desc: "PDF রিপোর্ট ও ভূমি অফিসে যাচাইয়ের সহজ চেকলিস্ট পান।",
+      featuresBadge: "মূল সুবিধা",
+      featuresTitle: "যা পাবেন",
+      featuresSubtitle: "জমি কেনার আগে প্রয়োজনীয় পরীক্ষা এক জায়গায়।",
+      feat1Title: "দলিল ও খতিয়ান মিলানো",
+      feat1Desc: "মালিক, মৌজা, খতিয়ান ও দাগ নম্বর পাশাপাশি তুলনা।",
+      feat2Title: "সহজ ঝুঁকি ব্যাখ্যা",
+      feat2Desc: "কী পাওয়া গেছে, কেন গুরুত্বপূর্ণ, পরবর্তীতে কী করবেন—স্পষ্ট ভাষায়।",
+      feat3Title: "মানচিত্রে প্লট দেখা",
+      feat3Desc: "নমুনা প্লট মানচিত্রে দেখে ঝুঁকির ফলাফল এক নজরে বুঝুন।",
+      feat4Title: "PDF রিপোর্ট",
+      feat4Desc: "প্রিন্ট বা সেভ করে অফিসে নিয়ে যাওয়ার মতো রিপোর্ট তৈরি করুন।",
+      feat5Title: "ভূমিসাথী সহকারী",
+      feat5Desc: "খতিয়ান, নামজারি বা দলিল নিয়ে সাধারণ প্রশ্নের উত্তর পান।",
+      feat6Title: "গোপনীয়তা",
+      feat6Desc: "আপনার দাখিলকৃত দলিল সার্ভারে স্থায়ীভাবে সংরক্ষণ করা হয় না।",
+      calloutTitle: "এখনই নমুনা রেকর্ড দিয়ে পরীক্ষা করুন",
+      calloutDesc: "সাভার, শ্রীপুর, রূপগঞ্জসহ ৬টি নমুনা প্লট দিয়ে যাচাই প্রক্রিয়া দেখুন।",
+      enterDashboardBtn: "যাচাই শুরু করুন",
+      askAssistantBtn: "ভূমিসাথীকে জিজ্ঞাসা করুন",
     },
     cta: {
       initiativeBadge: "নাগরিক ভূমি প্রাক-যাচাই উদ্যোগ",
@@ -507,20 +608,38 @@ export const translations: Record<Language, TranslationDictionary> = {
     map: {
       title: "নমুনা জমির ভৌগোলিক প্রাক-যাচাই মানচিত্র",
       demoBadge: "কাল্পনিক ডেমো",
-      subtitle: "মানচিত্রের যেকোনো মার্কার বা পলিগনে ক্লিক করে সংশ্লিষ্ট প্লটের প্রাথমিক ঝুঁকি ফলাফল পর্যালোচনা করুন",
-      boundaryNote: "* কোনো জরিপ-নির্ভুল বা বাস্তব সরকারি মৌজা সীমানা নির্দেশ করে না।",
+      subtitle: "মার্কার বা ড্যাশড ডেমো সীমানায় ক্লিক করে নমুনা প্লটের প্রাথমিক ঝুঁকি ফলাফল দেখুন।",
+      boundaryNote: "* OpenStreetMap-এ সরকারি খতিয়ান সীমানা নেই। ড্যাশড পলিগনগুলো দৃষ্টান্তমূলক ডেমো সীমানা মাত্র।",
       loadingMap: "ইন্টারেক্টিভ মানচিত্র লোড হচ্ছে...",
-      loadingSub: "বাংলাদেশ ভৌগোলিক স্থানাঙ্ক ও পলিগন রেন্ডার হচ্ছে",
+      loadingSub: "বাংলাদেশের নমুনা স্থানাঙ্ক, মার্কার ও ডেমো সীমানা প্রস্তুত হচ্ছে",
       selectedParcel: "নির্বাচিত প্লট",
       noParcelSelected: "কোনো প্লট নির্বাচিত নেই",
-      noParcelSelectedSub: "মানচিত্রের যেকোনো মার্কার বা পলিগনে ক্লিক করে জমির বিস্তারিত ও ঝুঁকি বিশ্লেষণ দেখুন।",
+      noParcelSelectedSub: "মানচিত্রের যেকোনো মার্কার বা সীমানায় ক্লিক করে জমির বিস্তারিত দেখুন।",
       viewInTable: "তালিকায় বিশদ দেখুন",
       verifyDeed: "দলিল যাচাই করুন",
       preAuditOutcome: "স্বয়ংক্রিয় প্রাক-নিরীক্ষা ফলাফল:",
       specsKhatianSurvey: "খতিয়ান ও জরিপ",
       specsArea: "জমির পরিমাণ",
       specsOwner: "নথিভুক্ত মালিক",
-      syntheticCoordsNote: "* কৃত্রিম ডেমো স্থানাঙ্ক — কোনো বাস্তব সীমানা নির্দেশ করে না।",
+      syntheticCoordsNote: "* কৃত্রিম ডেমো স্থানাঙ্ক ও দৃষ্টান্তমূলক সীমানা — জরিপভিত্তিক প্লট পরিমাপ নয়।",
+      legendClean: "ঝুঁকিহীন",
+      legendReview: "পর্যালোচনা প্রয়োজন",
+      legendInsufficient: "তথ্য অপর্যাপ্ত",
+      jumpLabel: "দ্রুত অবস্থান:",
+      showAll: "সব দেখান",
+      fitToParcel: "প্লটে ফিট করুন",
+      fitToResults: "ফলাফলে ফিট করুন",
+      layerStreets: "রাস্তা মানচিত্র",
+      layerSatellite: "স্যাটেলাইট (Esri)",
+      approxPointLabel: "আনুমানিক নমুনা অবস্থান",
+      popupApproxNote: "এটি আনুমানিক নমুনা পয়েন্ট — সরকারি দাগ সীমানা নয়।",
+      noCoordinates: "এই প্লটের মানচিত্র স্থানাঙ্ক নেই।",
+      coordsLabel: "স্থানাঙ্ক",
+      parcelIdLabel: "পার্সেল আইডি",
+      legendIllustrativeBoundary: "দৃষ্টান্তমূলক ডেমো সীমানা",
+      legendAuthenticBoundary: "প্রকৃত জ্যামিতি (যদি থাকে)",
+      illustrativeBoundaryDisclaimer:
+        "দৃষ্টান্তমূলক ডেমো সীমানা — সরকারি খতিয়ান/জরিপভিত্তিক দাগ সীমানা নয়।",
     },
     history: {
       historyTitle: "ধারাবাহিক হস্তান্তর ইতিহাস ও বায়া দলিলের পরম্পরা",
@@ -717,8 +836,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     sidebar: {
       overview: "সারসংক্ষেপ",
       verifyDocument: "দলিল যাচাই করুন",
-      myHistory: "আমার যাচাইকরণ ইতিহাস",
-      exploreRecords: "ভূমি রেকর্ড অনুসন্ধান",
+      myHistory: "যাচাই ইতিহাস",
+      exploreRecords: "নমুনা রেকর্ড",
       account: "আমার অ্যাকাউন্ট",
       collapse: "সাইডবার ছোট করুন",
       expand: "সাইডবার প্রসারিত করুন",
@@ -726,6 +845,52 @@ export const translations: Record<Language, TranslationDictionary> = {
       close: "মেনু বন্ধ করুন",
       workspace: "ব্যক্তিগত যাচাই ওয়ার্কস্পেস",
       logout: "লগআউট",
+    },
+    personalDashboard: {
+      welcomeBack: "স্বাগতম,",
+      subtitle: "এখানে দলিল যাচাই করুন, আগের ফলাফল দেখুন, বা নমুনা রেকর্ড ঘুরে দেখুন।",
+      heroTitle: "জমির দলিল যাচাই করুন",
+      heroDesc: "খতিয়ান, দাগ ও মালিকের তথ্য দিয়ে প্রাথমিক তুলনা শুরু করুন—ভূমি অফিসে যাওয়ার আগে।",
+      startCheckBtn: "যাচাই শুরু করুন",
+      quickActionsTitle: "দ্রুত কাজ",
+      actionVerify: "দলিল যাচাই",
+      actionVerifyDesc: "নতুন যাচাই শুরু করুন",
+      actionExplore: "নমুনা রেকর্ড",
+      actionExploreDesc: "মানচিত্র ও নমুনা প্লট দেখুন",
+      actionHistory: "যাচাই ইতিহাস",
+      actionHistoryDesc: "আগের সব ফলাফল",
+      actionChat: "ভূমিসাথী",
+      actionChatDesc: "প্রশ্ন করুন ও সাহায্য নিন",
+      activityTitle: "আপনার যাচাই সারাংশ",
+      activityHint: "কেবল আপনার সংরক্ষিত ফলাফল",
+      totalLabel: "মোট",
+      cleanLabel: "মিল আছে",
+      reviewLabel: "পর্যালোচনা",
+      partialLabel: "অসম্পূর্ণ",
+      recentTitle: "সাম্প্রতিক যাচাই",
+      recentSubtitle: "আপনার অ্যাকাউন্টে সংরক্ষিত ফলাফল",
+      viewAllHistory: "সব ইতিহাস",
+      emptyTitle: "এখনও কোনো যাচাই নেই",
+      emptyDesc: "প্রথম যাচাই শুরু করলে ফলাফল এখানে দেখা যাবে।",
+      emptyCta: "প্রথম যাচাই শুরু করুন",
+      step1Title: "তথ্য দিন",
+      step1Desc: "মৌজা, দাগ, খতিয়ান লিখুন বা দলিলের ছবি দিন।",
+      step2Title: "তুলনা দেখুন",
+      step2Desc: "মিল, অমিল ও সতর্কতা স্পষ্টভাবে দেখাবে।",
+      step3Title: "ফলাফল রাখুন",
+      step3Desc: "রিপোর্ট আপনার ইতিহাসে সংরক্ষিত থাকবে।",
+      unspecifiedOwner: "মালিকের নাম নেই",
+      dagLabel: "দাগ",
+      khatianLabel: "খতিয়ান",
+      mismatchFields: "টি অমিল",
+      matchFields: "টি মিল",
+      tipTitle: "মনে রাখবেন",
+      tip1: "খতিয়ানের ধারাবাহিকতা (সিএস–বিএস) পরীক্ষা করুন।",
+      tip2: "নামজারি ও হাল সনের খাজনা দেখুন।",
+      tip3: "খাস বা অর্পিত সম্পত্তি কিনা নিশ্চিত হোন।",
+      tip4: "সরেজমিনে সীমানা ও দখল যাচাই করুন।",
+      tipNote: "ল্যান্ডগার্ড বিডি সরকারি স্বত্ব সনদ নয়—প্রাথমিক সচেতনতার জন্য।",
+      navbarWorkspace: "আপনার যাচাই ওয়ার্কস্পেস",
     },
     explore: {
       title: "ভূমি রেকর্ড অনুসন্ধান",
@@ -779,18 +944,19 @@ export const translations: Record<Language, TranslationDictionary> = {
       fullNotice: "LandGuard BD is a civic technology prototype created to build consumer awareness for prospective land buyers. All records shown are synthetic demonstration data and do not represent actual property owners, real land parcels, or official government databases. This tool does not provide official government certification or legal advice.",
     },
     landing: {
-      hackathonTrack: "LandTech Innovation Hackathon 2026 • Track P5: Check Before You Buy",
-      heroTitleStart: "Pre-verify deeds, khatians, and potential risks",
-      heroTitleHighlight: "before buying land",
-      heroSubtitle: "A civic-tech platform for computer-assisted detection of chain-of-title gaps, khatian share mismatches, government khas land buffers, and duplicate transfer risks.",
-      startVerificationBtn: "Start Verification",
-      loginBtn: "Login",
-      viewDemoRecordsBtn: "View Demo Records",
-      checkChainOfTitle: "12–25 Year Chain of Title (Baya Deed) Continuity",
-      checkKhatianShare: "Khatian Share & Acreage Mismatch Auditing",
-      checkKhasWarning: "Khas Land No. 1 & Vested Property Warnings",
-      carouselPrev: "Previous slide",
-      carouselNext: "Next slide",
+      hackathonTrack: "LandTech Hackathon 2026 · Track P5",
+      brandHero: "LandGuard BD",
+      heroTitleStart: "Check land documents",
+      heroTitleHighlight: "before you buy",
+      heroSubtitle: "Review khatian details, deed history, and warning signs from home—before you visit the land office.",
+      startVerificationBtn: "Start a land check",
+      loginBtn: "Log in",
+      viewDemoRecordsBtn: "See how it works",
+      checkChainOfTitle: "Deed history continuity",
+      checkKhatianShare: "Share & land area match",
+      checkKhasWarning: "Khas land warnings",
+      carouselPrev: "Previous",
+      carouselNext: "Next",
       carouselSlide: "Slide",
       slide1Title: "Agricultural Landscapes & Riverine Parcels of Bangladesh",
       slide1Tag: "Agricultural Mouza",
@@ -798,37 +964,52 @@ export const translations: Record<Language, TranslationDictionary> = {
       slide2Tag: "Cadastral Boundary Map",
       slide3Title: "Land Deed Due Diligence & Khatian Verification Audit",
       slide3Tag: "Title & Deed Record",
-      heroDisclaimerNote: "LandGuard BD does not provide official legal title guarantees. It is an independent civic due-diligence audit tool.",
-      workflowBadge: "3 Simple Steps",
-      workflowTitle: "How to verify land information before purchase?",
-      workflowSubtitle: "Conduct preliminary verification of key deed and khatian details from home before scheduling an in-person search at the sub-registry and land offices.",
+      heroDisclaimerNote: "Not an official title certificate—for early awareness only. Always verify original records at the land office before deciding.",
+      previewLabel: "Sample verification result",
+      previewDocTitle: "Document pre-check",
+      previewOwnerLabel: "Owner",
+      previewOwnerValue: "Karim Uddin",
+      previewMouzaLabel: "Mouza",
+      previewMouzaValue: "Savar",
+      previewKhatianLabel: "Khatian",
+      previewKhatianValue: "1234 / RS",
+      previewMatch: "Matches found",
+      previewCaution: "Needs review",
+      previewFlagShare: "Share mismatch",
+      previewFlagChain: "Deed chain checked",
+      previewSampleNote: "Example only — create an account to run a real check",
+      benefitsTitle: "What gets checked",
+      workflowBadge: "3 steps",
+      workflowTitle: "How it works",
+      workflowSubtitle: "Enter details, see results, know what to do next.",
+      stepLabel: "Step",
       step1Num: "1",
-      step1Title: "Provide Deed & Khatian Details",
-      step1Desc: "Enter seller name, mouza, khatian number, survey type (CS, SA, RS, BS), dag (plot) number, and proposed land area.",
+      step1Title: "Enter the details",
+      step1Desc: "Add seller name, mouza, khatian, dag, and land area.",
       step2Num: "2",
-      step2Title: "Automated Comparison & Risk Audit",
-      step2Desc: "Field-by-field discrepancies against reference records, acreage inconsistencies, or conflicting transfer indicators are automatically flagged.",
+      step2Title: "Compare & spot risks",
+      step2Desc: "Mismatches, share gaps, or duplicate-sale signals are flagged.",
       step3Num: "3",
-      step3Title: "Get Audit Report & Checklist",
-      step3Desc: "Print a comprehensive PDF audit report complete with a unique reference code and an in-person due diligence checklist for land offices.",
-      featuresBadge: "Core Capabilities",
-      featuresTitle: "Key LandGuard BD Features for Land Security",
-      featuresSubtitle: "Integrated tools designed to empower citizens and reduce land fraud risks during due diligence.",
-      feat1Title: "Deed Pre-Verification Engine",
-      feat1Desc: "Precise field-by-field comparison of owner name, mouza, khatian, and dag numbers. Minor spelling or number mismatches are highlighted.",
-      feat2Title: "Explainable Risk Analysis",
-      feat2Desc: "No black-box risk scores. A structured 4-tier explanation of what discrepancy was found, which record triggered it, and recommended next steps.",
-      feat3Title: "Interactive Cadastral Map",
-      feat3Desc: "Visualize synthetic plot and mouza boundaries in Bangladesh geographic coordinates with instant one-click risk outcome inspection.",
-      feat4Title: "Printable PDF Audit Report",
-      feat4Desc: "Generate an isolated, professional audit document ready for browser printing or saving as PDF for in-person record checks.",
-      feat5Title: "Bhumi Sathi — AI Land Assistant",
-      feat5Desc: "Instant, informative answers to common questions about khatians, dags, mouzas, namjari mutations, baya deeds, and government portals from Bhumi Sathi.",
-      feat6Title: "Privacy & Data Security",
-      feat6Desc: "User-submitted deed details are not permanently stored on the server. In-memory processing ensures maximum data protection.",
-      calloutTitle: "Explore Live Verification with Synthetic Demo Records",
-      calloutDesc: "Our demonstration dashboard contains 6 complete synthetic plots across Savar, Sreepur, Rupganj, Sitakunda, Keraniganj, and Barishal Sadar.",
-      enterDashboardBtn: "Enter Dashboard",
+      step3Title: "Get your report",
+      step3Desc: "Download a PDF report and a simple land-office checklist.",
+      featuresBadge: "What you get",
+      featuresTitle: "Built for clear decisions",
+      featuresSubtitle: "The checks you need before buying land—in one place.",
+      feat1Title: "Match deed & khatian",
+      feat1Desc: "Compare owner, mouza, khatian, and dag side by side.",
+      feat2Title: "Plain-language risks",
+      feat2Desc: "See what was found, why it matters, and what to do next.",
+      feat3Title: "Map view",
+      feat3Desc: "Browse sample plots on a map and open risk results in one click.",
+      feat4Title: "PDF report",
+      feat4Desc: "Print or save a report you can take to the land office.",
+      feat5Title: "Bhumi Sathi help",
+      feat5Desc: "Ask common questions about khatian, namjari, and deeds.",
+      feat6Title: "Privacy first",
+      feat6Desc: "Submitted deed details are not permanently stored on the server.",
+      calloutTitle: "Try it with sample land records",
+      calloutDesc: "Explore six demo plots across Savar, Sreepur, Rupganj, and more.",
+      enterDashboardBtn: "Start a land check",
       askAssistantBtn: "Ask Bhumi Sathi",
     },
     cta: {
@@ -861,20 +1042,38 @@ export const translations: Record<Language, TranslationDictionary> = {
     map: {
       title: "Geographic Parcel Pre-Verification Map",
       demoBadge: "Synthetic Demo",
-      subtitle: "Click any marker or polygon on the map to review preliminary risk assessments for that parcel.",
-      boundaryNote: "* Does not represent survey-accurate or official cadastral mouza boundaries.",
+      subtitle: "Click a marker or dashed demo boundary to review a sample plot’s preliminary risk result.",
+      boundaryNote: "* OpenStreetMap does not contain official cadastral boundaries. Dashed polygons are illustrative demo boundaries only.",
       loadingMap: "Loading interactive map...",
-      loadingSub: "Rendering Bangladesh geographic coordinates and parcel polygons",
+      loadingSub: "Preparing Bangladesh sample coordinates, markers, and demo boundaries",
       selectedParcel: "Selected Parcel",
       noParcelSelected: "No Plot Selected",
-      noParcelSelectedSub: "Click any marker or polygon on the map to inspect parcel details and risk analysis.",
+      noParcelSelectedSub: "Click any marker or boundary on the map to inspect parcel details.",
       viewInTable: "View in Table",
       verifyDeed: "Verify Deed",
       preAuditOutcome: "Automated Pre-Audit Outcome:",
       specsKhatianSurvey: "Khatian & Survey",
       specsArea: "Land Area",
       specsOwner: "Recorded Owner",
-      syntheticCoordsNote: "* Synthetic demo coordinates — do not indicate actual real-world physical boundaries.",
+      syntheticCoordsNote: "* Synthetic demo coordinates and illustrative boundaries — not surveyed plot measurements.",
+      legendClean: "Low risk",
+      legendReview: "Needs review",
+      legendInsufficient: "Insufficient info",
+      jumpLabel: "Jump to:",
+      showAll: "Show all",
+      fitToParcel: "Fit to parcel",
+      fitToResults: "Fit to results",
+      layerStreets: "Street map",
+      layerSatellite: "Satellite (Esri)",
+      approxPointLabel: "Approximate sample location",
+      popupApproxNote: "Approximate sample point — not an official dag boundary.",
+      noCoordinates: "This plot has no map coordinates.",
+      coordsLabel: "Coordinates",
+      parcelIdLabel: "Parcel ID",
+      legendIllustrativeBoundary: "Illustrative demo boundary",
+      legendAuthenticBoundary: "Supplied geometry (if any)",
+      illustrativeBoundaryDisclaimer:
+        "Illustrative demo boundary — not an official cadastral parcel boundary.",
     },
     history: {
       historyTitle: "Chain of Title & Transfer History Timeline",
@@ -1070,16 +1269,62 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     sidebar: {
       overview: "Overview",
-      verifyDocument: "Verify Land Document",
-      myHistory: "My Verification History",
-      exploreRecords: "Explore Land Records",
+      verifyDocument: "Verify document",
+      myHistory: "Verification history",
+      exploreRecords: "Sample records",
       account: "My Account",
       collapse: "Collapse sidebar",
       expand: "Expand sidebar",
       menu: "Navigation Menu",
       close: "Close menu",
       workspace: "Personal Verification Workspace",
-      logout: "Logout",
+      logout: "Log out",
+    },
+    personalDashboard: {
+      welcomeBack: "Welcome,",
+      subtitle: "Check a land document, review past results, or browse sample records.",
+      heroTitle: "Check a land document",
+      heroDesc: "Compare khatian, dag, and owner details before you visit the land office.",
+      startCheckBtn: "Start a land check",
+      quickActionsTitle: "Quick actions",
+      actionVerify: "Verify document",
+      actionVerifyDesc: "Start a new check",
+      actionExplore: "Sample records",
+      actionExploreDesc: "Map and demo plots",
+      actionHistory: "History",
+      actionHistoryDesc: "All past results",
+      actionChat: "Bhumi Sathi",
+      actionChatDesc: "Ask for help",
+      activityTitle: "Your checks at a glance",
+      activityHint: "Saved results only",
+      totalLabel: "Total",
+      cleanLabel: "Matched",
+      reviewLabel: "Needs review",
+      partialLabel: "Incomplete",
+      recentTitle: "Recent checks",
+      recentSubtitle: "Results saved to your account",
+      viewAllHistory: "View all",
+      emptyTitle: "No checks yet",
+      emptyDesc: "When you finish your first verification, results will show up here.",
+      emptyCta: "Start your first check",
+      step1Title: "Enter details",
+      step1Desc: "Add mouza, dag, khatian—or upload a document photo.",
+      step2Title: "See the comparison",
+      step2Desc: "Matches, mismatches, and warnings are shown clearly.",
+      step3Title: "Keep the result",
+      step3Desc: "Your report stays in history for later review.",
+      unspecifiedOwner: "Owner not specified",
+      dagLabel: "Dag",
+      khatianLabel: "Khatian",
+      mismatchFields: "mismatches",
+      matchFields: "matches",
+      tipTitle: "Before you buy",
+      tip1: "Check khatian continuity (CS–BS).",
+      tip2: "Review mutation and recent tax receipts.",
+      tip3: "Confirm it is not khas or vested property.",
+      tip4: "Verify boundaries and possession on site.",
+      tipNote: "LandGuard BD is not an official title certificate—for early awareness only.",
+      navbarWorkspace: "Your verification workspace",
     },
     explore: {
       title: "Explore Land Records",

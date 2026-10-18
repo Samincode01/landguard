@@ -13,15 +13,15 @@ interface ParcelMapProps {
   onScrollToTable?: (parcelId: string) => void;
 }
 
-// Dynamically import Leaflet inner map component with ssr: false to prevent window/document SSR errors
-const DynamicParcelMapInner = dynamic(() => import("./ParcelMapInner"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[460px] w-full rounded-2xl border border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-slate-500 gap-2 p-6 animate-pulse">
+function MapLoadingFallback() {
+  const { t } = useLanguage();
+  return (
+    <div className="h-[420px] w-full rounded-xl border border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-slate-500 gap-2 p-6">
       <svg
         className="h-8 w-8 text-slate-400 animate-spin"
         fill="none"
         viewBox="0 0 24 24"
+        aria-hidden
       >
         <circle
           className="opacity-25"
@@ -37,14 +37,17 @@ const DynamicParcelMapInner = dynamic(() => import("./ParcelMapInner"), {
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <span className="text-sm font-medium text-slate-600">
-        মানচিত্র লোড হচ্ছে / Loading map...
-      </span>
-      <span className="text-2xs text-slate-400">
-        Rendering Bangladesh geographic coordinates & parcel polygons
+      <span className="text-sm font-medium text-slate-600">{t.map.loadingMap}</span>
+      <span className="text-[11px] text-slate-400 text-center max-w-xs">
+        {t.map.loadingSub}
       </span>
     </div>
-  ),
+  );
+}
+
+const DynamicParcelMapInner = dynamic(() => import("./ParcelMapInner"), {
+  ssr: false,
+  loading: () => <MapLoadingFallback />,
 });
 
 export default function ParcelMap({
@@ -58,10 +61,9 @@ export default function ParcelMap({
 
   return (
     <div id="map-section" className="space-y-3.5 pt-2">
-      {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">
               {t.map.title}
             </h2>
@@ -69,17 +71,14 @@ export default function ParcelMap({
               {t.map.demoBadge}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {t.map.subtitle}
-          </p>
+          <p className="text-sm text-slate-500 mt-0.5 max-w-2xl">{t.map.subtitle}</p>
         </div>
 
-        <div className="text-2xs text-slate-400 italic sm:text-right">
+        <p className="text-[11px] text-slate-400 italic sm:text-right max-w-sm">
           {t.map.boundaryNote}
-        </div>
+        </p>
       </div>
 
-      {/* Map Component Canvas */}
       <DynamicParcelMapInner
         parcels={parcels}
         selectedParcelId={selectedParcelId}

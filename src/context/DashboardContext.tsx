@@ -10,6 +10,11 @@ interface DashboardContextType {
   closeVerificationModal: () => void;
   selectedParcelForVerification: string | null;
 
+  // Bhumi Sathi chat (shared with navbar + overview quick actions)
+  isChatOpen: boolean;
+  openChat: () => void;
+  closeChat: () => void;
+
   // Sidebar States
   isSidebarCollapsed: boolean;
   toggleSidebarCollapsed: () => void;
@@ -49,6 +54,14 @@ export function DashboardProvider({
 
   // Mobile drawer state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Chat widget state (shared across dashboard chrome + overview)
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const openChat = useCallback(() => {
+    setIsChatOpen(true);
+    setIsMobileSidebarOpen(false);
+  }, []);
+  const closeChat = useCallback(() => setIsChatOpen(false), []);
 
   const toggleSidebarCollapsed = useCallback(() => {
     setIsSidebarCollapsed((prev) => {
@@ -96,6 +109,9 @@ export function DashboardProvider({
         openVerificationModal,
         closeVerificationModal,
         selectedParcelForVerification,
+        isChatOpen,
+        openChat,
+        closeChat,
         isSidebarCollapsed,
         toggleSidebarCollapsed,
         isMobileSidebarOpen,

@@ -10,9 +10,9 @@ import PersonalDashboardView, {
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "ব্যক্তিগত যাচাই ওয়ার্কস্পেস — ল্যান্ডগার্ড বিডি (LandGuard BD)",
+  title: "ড্যাশবোর্ড — ল্যান্ডগার্ড বিডি",
   description:
-    "আপনার অ্যাকাউন্টে সংরক্ষিত ব্যক্তিগত ভূমি প্রাক-যাচাই ওয়ার্কস্পেস ও সাম্প্রতিক দলিলের ফলাফল।",
+    "জমির দলিল যাচাই করুন, সাম্প্রতিক ফলাফল দেখুন এবং নমুনা ভূমি রেকর্ড ঘুরে দেখুন।",
 };
 
 interface StoredHistoryPayload {

@@ -87,7 +87,10 @@ export function mapPrismaToDemoParcel(record: any): DemoLandParcel {
     },
     riskFlags: parsedMetadata.riskFlags || [],
     approxLocation:
-      record.latitude && record.longitude
+      typeof record.latitude === "number" &&
+      typeof record.longitude === "number" &&
+      Number.isFinite(record.latitude) &&
+      Number.isFinite(record.longitude)
         ? { lat: record.latitude, lng: record.longitude }
         : undefined,
     notesBn: record.notesBn || "",

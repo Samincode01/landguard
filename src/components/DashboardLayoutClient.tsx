@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import DashboardNavbar from "./DashboardNavbar";
 import DashboardSidebar from "./DashboardSidebar";
 import VerificationModal from "./VerificationModal";
@@ -19,34 +19,29 @@ export default function DashboardLayoutClient({
     closeVerificationModal,
     selectedParcelForVerification,
     referenceParcels,
+    isChatOpen,
+    openChat,
+    closeChat,
   } = useDashboard();
 
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Responsive Sidebar: Full 100dvh on desktop, off-canvas drawer on mobile */}
+    <div className="flex h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-[#f4f7f5] text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
       <DashboardSidebar />
 
-      {/* Main View Area: Fixed Navbar + Independent Scrollable Content */}
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
-        {/* Minimal Top Navbar */}
-        <DashboardNavbar onOpenChat={() => setIsChatOpen(true)} />
+        <DashboardNavbar onOpenChat={openChat} />
 
-        {/* Route Content (Overview / History / Explore) with single scroll container */}
         <main className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>
 
-      {/* Persistent Floating / Bottom-Sheet Chat Widget (Bhumi Sathi) */}
       <ChatSupportWidget
         isOpen={isChatOpen}
-        onOpen={() => setIsChatOpen(true)}
-        onClose={() => setIsChatOpen(false)}
+        onOpen={openChat}
+        onClose={closeChat}
       />
 
-      {/* Global Verification Modal (accessible anywhere via Sidebar CTA) */}
       {isVerificationModalOpen && (
         <VerificationModal
           key={selectedParcelForVerification || "default"}
